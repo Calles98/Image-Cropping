@@ -29,9 +29,16 @@ function Form({ condition, setCondition, holeId, setHoleId, from, setFrom, to, s
               </div> 
             </div>
             <label htmlFor="">From:</label>
-            <input type="number" name="from" id="" className='outline=none border border-solid rounded-md border-slate-700' onChange={(e) => setFrom(e.target.value)} />
+            <input type="number" name="from" value={from} className='outline=none border border-solid rounded-md border-slate-700' onChange={(e) => setFrom(e.target.value)} placeholder={from} />
             <label htmlFor="">To:</label>
-            <input type="number" name='to' className='outline=none border border-solid rounded-md border-slate-700' onChange={(e) => setTo(e.target.value)} />
+            <input
+              type="number"
+              name="to"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+              className="outline-none border border-solid rounded-md border-slate-700 px-2 py-1"
+              placeholder={to}
+            />
         </form>
     </div>
   )

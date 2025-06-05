@@ -10,7 +10,7 @@ export default function Home() {
   const [images, setImages] = useState([]);
   const [image, setImage] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  //const [imageFiles, setImagedFiles] = useState([]);
+  const [imageFiles, setImagedFiles] = useState([]);
   const [croppedItems, setCroppedItems] = useState([]);
   const [folderName, setFolderName] = useState('');
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -19,6 +19,9 @@ export default function Home() {
   const [croppedImageUrl, setCroppedImageUrl] = useState(null);
   const [aspectWidth, setAspectWidth] = useState(4);
   const [aspectHeight, setAspectHeight] = useState(3);
+  const [rotation, setRotation] = useState(0);
+  const [skewX, setSkewX] = useState(0);
+  const [skewY, setSkewY] = useState(0);
   const [currentValue, setCurrentValue] = useState(50); // Default quality value
   // Additional form fields
   const [condition, setCondition] = useState('D');
@@ -82,14 +85,24 @@ export default function Home() {
       to, 
       currentValue,
       condition,
+      rotation, 
+      skewX,
+      skewY,
       x: croppedAreaPixels.x,
       y: croppedAreaPixels.y,
       w: croppedAreaPixels.width,
       h: croppedAreaPixels.height,
     }
     setCroppedItems((prev) => [...prev, newItem]);  
+    setFrom(to);
+    setTo('');
     setCurrentIndex(prev => prev + 1);
+   
   }
+
+  console.log(from, to);
+  
+
 
   console.log('Cropped Items:', croppedItems);
   
@@ -100,11 +113,14 @@ export default function Home() {
     croppedItems.forEach((item, index) => {
       const prefix = `file_${index}_`;
       formData.append('images', item.file);
-      formData.append(prefix + 'hole-id', item.holeId);
+      formData.append(prefix + 'hole-id', item.holeId.toUpperCase());
       formData.append(prefix + 'from', item.from);
       formData.append(prefix + 'to', item.to);
       formData.append(prefix + 'quality', item.currentValue);
       formData.append(prefix + 'condition', item.condition);
+      formData.append(prefix + 'rotation', item.rotation);
+      formData.append(prefix + 'skewX', item.skewX);
+      formData.append(prefix + 'skewY', item.skewY);
       formData.append(prefix + 'x', item.x);
       formData.append(prefix + 'y', item.y);
       formData.append(prefix + 'w', item.w);
@@ -191,6 +207,38 @@ export default function Home() {
                 className="w-full"
               />
             </div>
+            <div className='my-4'>
+              <label className="block mb-1 text-sm font-medium">Rotation: {rotation}°</label>
+              <input
+                type="range"
+                min="-180"
+                max="180"
+                value={rotation}
+                onChange={(e) => setRotation(Number(e.target.value))}
+                className="w-full"
+              />
+            </div>
+            <div className='my-4'>
+              <label>Horizontal Skew: {skewX}</label>
+              <input
+                type="range"
+                min="-0.5"
+                max="0.5"
+                step="0.01"
+                value={skewX}
+                onChange={(e) => setSkewX(parseFloat(e.target.value))}
+              />
+
+              <label>Vertical Skew: {skewY}</label>
+              <input
+                type="range"
+                min="-0.5"
+                max="0.5"
+                step="0.01"
+                value={skewY}
+                onChange={(e) => setSkewY(parseFloat(e.target.value))}
+              />
+            </div>
           </div>
           <Dropdown currentValue={currentValue} handleValueChange={handleValueChange} />
         </div>
@@ -220,6 +268,8 @@ export default function Home() {
             aspect={aspect}
             onCropChange={setCrop}
             onZoomChange={setZoom}
+            rotation={rotation}
+            onRotationChange={setRotation}
             onCropComplete={onCropComplete}
           />
         </div>
