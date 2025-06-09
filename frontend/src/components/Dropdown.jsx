@@ -15,7 +15,7 @@ const Dropdown = ({ currentValue, handleValueChange }) => {
     
 
     return (
-        <div className='w-full py-6 pb-8 z-50'>
+        <div className='absolute w-full py-6 pb-8 z-50'>
             <div className="relative inline-block">
                 <button
                     type="button"

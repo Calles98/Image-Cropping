@@ -30,24 +30,6 @@ def rotate_image(image, angle):
     # Perform the actual rotation and return the image
     return cv2.warpAffine(image, M, (new_w, new_h))
 
-def skew_image(image, skew_x=0.0, skew_y=0.0):
-    """Apply horizontal and vertical skew to the image."""
-    rows, cols = image.shape[:2]
-
-    # Define the source triangle
-    pts1 = np.float32([[0, 0], [cols, 0], [0, rows]])
-
-    # Define how points are moved — apply skew
-    pts2 = np.float32([
-        [0 + skew_x * rows, 0],
-        [cols + skew_x * rows, 0],
-        [0, rows + skew_y * cols]
-    ])
-
-    # Compute affine matrix and apply
-    M = cv2.getAffineTransform(pts1, pts2)
-    return cv2.warpAffine(image, M, (cols, rows))
-
 @app.route('/crop', methods=['POST'])
 def crop_image():
 
@@ -69,6 +51,7 @@ def crop_image():
             drill_to = form_data.get(prefix + 'to', '0')
             quality = int(form_data.get(prefix + 'quality', 80))
             condition = form_data.get(prefix + 'condition', 'D')
+            rotation = float(form_data.get(prefix + 'rotation', '0'))
 
             # Get crop dimensions (your frontend must provide them)
             x = int(form_data.get(prefix + 'x', 0))
@@ -76,24 +59,10 @@ def crop_image():
             w = int(form_data.get(prefix + 'w', image.shape[1]))
             h = int(form_data.get(prefix + 'h', image.shape[0])) 
 
-            rotation = float(form_data.get(prefix + 'rotation', 0))
-            rotated_image = rotate_image(image, rotation)
-
-            rotation = float(form_data.get(prefix + 'rotation', 0))
-            rotated_image = rotate_image(image, rotation)
-
-            # Get skew parameters from form
-            skew_x = float(form_data.get(prefix + 'skewX', 0))
-            skew_y = float(form_data.get(prefix + 'skewY', 0))
-
-            # Apply skew to the rotated image
-            processed_image = skew_image(rotated_image, skew_x, skew_y)
-
-            # Now crop from the fully transformed image
-            cropped_image = processed_image[y:y+h, x:x+w]
+            rotated_image = rotate_image(image, rotation)  # Rotate the image by 90 degrees
 
             # Now crop from rotated_image, not image
-            #cropped_image = rotated_image[y:y+h, x:x+w]
+            cropped_image = rotated_image[y:y+h, x:x+w]
 
 
              # crop image

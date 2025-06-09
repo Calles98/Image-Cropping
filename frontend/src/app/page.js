@@ -11,6 +11,7 @@ export default function Home() {
   const [image, setImage] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [imageFiles, setImagedFiles] = useState([]);
+  const [imageCount, setImageCount] = useState(0);
   const [croppedItems, setCroppedItems] = useState([]);
   const [folderName, setFolderName] = useState('');
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -20,8 +21,6 @@ export default function Home() {
   const [aspectWidth, setAspectWidth] = useState(4);
   const [aspectHeight, setAspectHeight] = useState(3);
   const [rotation, setRotation] = useState(0);
-  const [skewX, setSkewX] = useState(0);
-  const [skewY, setSkewY] = useState(0);
   const [currentValue, setCurrentValue] = useState(50); // Default quality value
   // Additional form fields
   const [condition, setCondition] = useState('D');
@@ -86,25 +85,24 @@ export default function Home() {
       currentValue,
       condition,
       rotation, 
-      skewX,
-      skewY,
       x: croppedAreaPixels.x,
       y: croppedAreaPixels.y,
       w: croppedAreaPixels.width,
       h: croppedAreaPixels.height,
     }
     setCroppedItems((prev) => [...prev, newItem]);  
-    setFrom(to);
-    setTo('');
+    if (currentIndex % 2 !== 0) {
+      setFrom(to);
+      setTo('');
+    }
+    //setFrom(to);
+    //setTo('');
     setCurrentIndex(prev => prev + 1);
    
   }
 
-  console.log(from, to);
-  
 
-
-  console.log('Cropped Items:', croppedItems);
+  console.log('current index:', currentIndex);
   
 
   const handleFinalDownload = async () => {
@@ -119,8 +117,6 @@ export default function Home() {
       formData.append(prefix + 'quality', item.currentValue);
       formData.append(prefix + 'condition', item.condition);
       formData.append(prefix + 'rotation', item.rotation);
-      formData.append(prefix + 'skewX', item.skewX);
-      formData.append(prefix + 'skewY', item.skewY);
       formData.append(prefix + 'x', item.x);
       formData.append(prefix + 'y', item.y);
       formData.append(prefix + 'w', item.w);
@@ -181,7 +177,7 @@ export default function Home() {
       </div>
 
       {/* Controls: Aspect & Metadata */}
-      <div className="flex flex-col md:flex-row gap-4 w-full">
+      <div className="flex flex-col md:flex-row gap-4 w-full mb-15 ">
         {/* Left Panel – Aspect & Quality */}
         <div className="w-full md:w-1/2 p-4 space-y-4">
           <div className="flex flex-col sm:flex-row gap-4">
@@ -216,27 +212,6 @@ export default function Home() {
                 value={rotation}
                 onChange={(e) => setRotation(Number(e.target.value))}
                 className="w-full"
-              />
-            </div>
-            <div className='my-4'>
-              <label>Horizontal Skew: {skewX}</label>
-              <input
-                type="range"
-                min="-0.5"
-                max="0.5"
-                step="0.01"
-                value={skewX}
-                onChange={(e) => setSkewX(parseFloat(e.target.value))}
-              />
-
-              <label>Vertical Skew: {skewY}</label>
-              <input
-                type="range"
-                min="-0.5"
-                max="0.5"
-                step="0.01"
-                value={skewY}
-                onChange={(e) => setSkewY(parseFloat(e.target.value))}
               />
             </div>
           </div>
