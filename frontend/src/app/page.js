@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from 'react';
-import Cropper from 'react-easy-crop';
-import axios from 'axios';
-import Dropdown from '@/components/Dropdown';
-import Form from '@/components/Form';
+import React, { useState, useCallback, useEffect } from "react";
+import Cropper from "react-easy-crop";
+import axios from "axios";
+import Dropdown from "@/components/Dropdown";
+import Form from "@/components/Form";
 
 export default function Home() {
   const [images, setImages] = useState([]);
@@ -13,7 +13,7 @@ export default function Home() {
   const [imageFiles, setImagedFiles] = useState([]);
   const [imageCount, setImageCount] = useState(0);
   const [croppedItems, setCroppedItems] = useState([]);
-  const [folderName, setFolderName] = useState('');
+  const [folderName, setFolderName] = useState("");
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
@@ -23,24 +23,26 @@ export default function Home() {
   const [rotation, setRotation] = useState(0);
   const [currentValue, setCurrentValue] = useState(50); // Default quality value
   // Additional form fields
-  const [condition, setCondition] = useState('D');
-  const [holeId, setHoleId] = useState('');
-  const [from, setFrom] = useState('0.00');
-  const [to, setTo] = useState('');
+  const [condition, setCondition] = useState("D");
+  const [holeId, setHoleId] = useState("");
+  const [from, setFrom] = useState("0.00");
+  const [to, setTo] = useState("");
 
-
-  const aspect = aspectWidth && aspectHeight ? aspectWidth / aspectHeight : undefined;
+  const aspect =
+    aspectWidth && aspectHeight ? aspectWidth / aspectHeight : undefined;
 
   const onCropComplete = useCallback((_, croppedAreaPixels) => {
     setCroppedAreaPixels(croppedAreaPixels);
   }, []);
 
   const handleFolderUpload = (e) => {
-    const files = Array.from(e.target.files).filter(file => file.type.startsWith('image/'));
+    const files = Array.from(e.target.files).filter((file) =>
+      file.type.startsWith("image/")
+    );
     if (files.length === 0) return;
     setImages(files);
     setImagedFiles(files);
-    setFolderName(files[0].webkitRelativePath.split('/')[0]);
+    setFolderName(files[0].webkitRelativePath.split("/")[0]);
     setCurrentIndex(0);
     loadImage(files[0]);
   };
@@ -52,7 +54,6 @@ export default function Home() {
   };
 
   console.log(images);
-  
 
   useEffect(() => {
     if (images.length > 0 && currentIndex < images.length) {
@@ -66,90 +67,131 @@ export default function Home() {
 
   const handleNext = () => {
     if (currentIndex < images.length - 1) {
-      setCurrentIndex(prevIndex => prevIndex + 1);
+      setCurrentIndex((prevIndex) => prevIndex + 1);
     }
   };
 
   const handlePrev = () => {
     if (currentIndex > 0) {
-      setCurrentIndex(prevIndex => prevIndex - 1);
+      setCurrentIndex((prevIndex) => prevIndex - 1);
     }
   };
 
   const handleSingleCrop = () => {
     const newItem = {
       file: images[currentIndex],
-      holeId, 
-      from, 
-      to, 
+      holeId,
+      from,
+      to,
       currentValue,
       condition,
-      rotation, 
+      rotation,
       x: croppedAreaPixels.x,
       y: croppedAreaPixels.y,
       w: croppedAreaPixels.width,
       h: croppedAreaPixels.height,
-    }
-    setCroppedItems((prev) => [...prev, newItem]);  
+    };
+    setCroppedItems((prev) => [...prev, newItem]);
     if (currentIndex % 2 !== 0) {
       setFrom(to);
-      setTo('');
+      setTo("");
     }
     //setFrom(to);
     //setTo('');
-    setCurrentIndex(prev => prev + 1);
-   
-  }
+    setCurrentIndex((prev) => prev + 1);
+  };
 
-
-  console.log('current index:', currentIndex);
-  
+  console.log("current index:", currentIndex);
 
   const handleFinalDownload = async () => {
     const formData = new FormData();
 
     croppedItems.forEach((item, index) => {
       const prefix = `file_${index}_`;
-      formData.append('images', item.file);
-      formData.append(prefix + 'hole-id', item.holeId.toUpperCase());
-      formData.append(prefix + 'from', item.from);
-      formData.append(prefix + 'to', item.to);
-      formData.append(prefix + 'quality', item.currentValue);
-      formData.append(prefix + 'condition', item.condition);
-      formData.append(prefix + 'rotation', item.rotation);
-      formData.append(prefix + 'x', item.x);
-      formData.append(prefix + 'y', item.y);
-      formData.append(prefix + 'w', item.w);
-      formData.append(prefix + 'h', item.h);
+      formData.append("images", item.file);
+      formData.append(prefix + "hole-id", item.holeId.toUpperCase());
+      formData.append(prefix + "from", item.from);
+      formData.append(prefix + "to", item.to);
+      formData.append(prefix + "quality", item.currentValue);
+      formData.append(prefix + "condition", item.condition);
+      formData.append(prefix + "rotation", item.rotation);
+      formData.append(prefix + "x", item.x);
+      formData.append(prefix + "y", item.y);
+      formData.append(prefix + "w", item.w);
+      formData.append(prefix + "h", item.h);
     });
 
     try {
-      const response = await axios.post('http://127.0.0.1:5000/crop', formData, {
-        responseType: 'blob',
-      });
+      const response = await axios.post(
+        "http://127.0.0.1:5000/crop",
+        formData,
+        {
+          responseType: "blob",
+        }
+      );
 
-      const blob = new Blob([response.data], { type: 'application/zip' });
+      const blob = new Blob([response.data], { type: "application/zip" });
       const url = URL.createObjectURL(blob);
 
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      link.download = 'cropped_images.zip';
+      link.download = "cropped_images.zip";
       document.body.appendChild(link);
       link.click();
       link.remove();
     } catch (err) {
-      console.error('Download failed:', err);
+      console.error("Download failed:", err);
     }
   };
 
-
   const handleValueChange = (value) => {
     setCurrentValue(value);
-  }
+  };
+
+  const handleAutomaticCrop = async () => {
+    if (images.length === 0) {
+      alert("Please upload a folder with images first.");
+      return;
+    }
+
+    const formData = new FormData();
+    for (let i = 0; i < images.length; i++) {
+      formData.append("images", images[i]);
+      formData.append("quality", currentValue);
+    }
+
+    console.log([...formData]);
+
+    try {
+      const response = await axios.post(
+        "http://127.0.0.1:5000/auto-crop",
+        formData,
+        {
+          responseType: "blob",
+        }
+      );
+
+      const blob = new Blob([response.data], { type: "application/zip" });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "cropped_images.zip";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      console.error("Download failed:", err);
+    }
+  };
+
+  console.log(images);
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
-      <h1 className="text-2xl font-bold text-center">Dynamic Aspect Ratio Cropper</h1>
+      <h1 className="text-2xl font-bold text-center">
+        Dynamic Aspect Ratio Cropper
+      </h1>
 
       {/* Image Upload */}
       <div className="mb-4 flex items-center justify-center">
@@ -163,17 +205,31 @@ export default function Home() {
           className="hidden"
           id="folderinput"
         />
-        <label htmlFor="folderinput" className="p-2 bg-blue-600 rounded-md text-white hover:cursor-pointer">
+        <label
+          htmlFor="folderinput"
+          className="p-2 bg-blue-600 rounded-md text-white hover:cursor-pointer"
+        >
           Upload Folder
         </label>
-        <span className="ml-4 text-gray-500">{folderName ? folderName : 'No folder selected'}</span>
+        <span className="ml-4 text-gray-500">
+          {folderName ? folderName : "No folder selected"}
+        </span>
       </div>
 
       {/* Navigation */}
       <div className="flex justify-between mt-4">
-        <button disabled={currentIndex === 0} onClick={handlePrev}>⬅️ Prev</button>
-        <span>{currentIndex + 1} / {images.length}</span>
-        <button disabled={currentIndex === images.length - 1} onClick={handleNext}>Next ➡️</button>
+        <button disabled={currentIndex === 0} onClick={handlePrev}>
+          ⬅️ Prev
+        </button>
+        <span>
+          {currentIndex + 1} / {images.length}
+        </span>
+        <button
+          disabled={currentIndex === images.length - 1}
+          onClick={handleNext}
+        >
+          Next ➡️
+        </button>
       </div>
 
       {/* Controls: Aspect & Metadata */}
@@ -182,7 +238,9 @@ export default function Home() {
         <div className="w-full md:w-1/2 p-4 space-y-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
-              <label className="block mb-1 text-sm font-medium">Aspect Width: {aspectWidth}</label>
+              <label className="block mb-1 text-sm font-medium">
+                Aspect Width: {aspectWidth}
+              </label>
               <input
                 type="range"
                 min="1"
@@ -193,7 +251,9 @@ export default function Home() {
               />
             </div>
             <div className="flex-1">
-              <label className="block mb-1 text-sm font-medium">Aspect Height: {aspectHeight}</label>
+              <label className="block mb-1 text-sm font-medium">
+                Aspect Height: {aspectHeight}
+              </label>
               <input
                 type="range"
                 min="1"
@@ -203,8 +263,10 @@ export default function Home() {
                 className="w-full"
               />
             </div>
-            <div className='my-4'>
-              <label className="block mb-1 text-sm font-medium">Rotation: {rotation}°</label>
+            <div className="my-4">
+              <label className="block mb-1 text-sm font-medium">
+                Rotation: {rotation}°
+              </label>
               <input
                 type="range"
                 min="-180"
@@ -215,7 +277,10 @@ export default function Home() {
               />
             </div>
           </div>
-          <Dropdown currentValue={currentValue} handleValueChange={handleValueChange} />
+          <Dropdown
+            currentValue={currentValue}
+            handleValueChange={handleValueChange}
+          />
         </div>
 
         {/* Right Panel – Form */}
@@ -262,7 +327,16 @@ export default function Home() {
         </div>
       )}
 
-       {croppedAreaPixels && (
+      <div className="text-center">
+        <button
+          onClick={handleAutomaticCrop}
+          className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded"
+        >
+          Automatic Crop
+        </button>
+      </div>
+
+      {croppedAreaPixels && (
         <div className="text-center">
           <button
             onClick={handleSingleCrop}
@@ -272,7 +346,6 @@ export default function Home() {
           </button>
         </div>
       )}
-      
 
       {/* Preview */}
       {croppedImageUrl && (
@@ -288,6 +361,3 @@ export default function Home() {
     </div>
   );
 }
-
-
-  
