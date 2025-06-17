@@ -5,6 +5,7 @@ import Cropper from "react-easy-crop";
 import axios from "axios";
 import Dropdown from "@/components/Dropdown";
 import Form from "@/components/Form";
+import PerspectiveCropper from "@/components/PerspectiveCropper";
 
 export default function Home() {
   const [images, setImages] = useState([]);
@@ -21,6 +22,7 @@ export default function Home() {
   const [aspectWidth, setAspectWidth] = useState(4);
   const [aspectHeight, setAspectHeight] = useState(3);
   const [rotation, setRotation] = useState(0);
+  const [cornerPoints, setCornerPoints] = useState([]);
   const [currentValue, setCurrentValue] = useState(50); // Default quality value
   // Additional form fields
   const [condition, setCondition] = useState("D");
@@ -86,10 +88,11 @@ export default function Home() {
       currentValue,
       condition,
       rotation,
-      x: croppedAreaPixels.x,
-      y: croppedAreaPixels.y,
-      w: croppedAreaPixels.width,
-      h: croppedAreaPixels.height,
+      // x: croppedAreaPixels.x,
+      // y: croppedAreaPixels.y,
+      // w: croppedAreaPixels.width,
+      // h: croppedAreaPixels.height,
+      points: cornerPoints
     };
     setCroppedItems((prev) => [...prev, newItem]);
     if (currentIndex % 2 !== 0) {
@@ -115,10 +118,15 @@ export default function Home() {
       formData.append(prefix + "quality", item.currentValue);
       formData.append(prefix + "condition", item.condition);
       formData.append(prefix + "rotation", item.rotation);
-      formData.append(prefix + "x", item.x);
-      formData.append(prefix + "y", item.y);
-      formData.append(prefix + "w", item.w);
-      formData.append(prefix + "h", item.h);
+      // formData.append(prefix + "x", item.x);
+      // formData.append(prefix + "y", item.y);
+      // formData.append(prefix + "w", item.w);
+      // formData.append(prefix + "h", item.h);
+      item.points.forEach((pt, i) => {
+        formData.append(`${prefix}pt${i}_x`, pt.x);
+        formData.append(`${prefix}pt${i}_y`, pt.y);
+
+      })
     });
 
     try {
@@ -198,7 +206,7 @@ export default function Home() {
           {image && (
             <div
               className="relative w-full aspect-[4/3] h-[400px] bg-black rounded overflow-hidden">
-              <Cropper
+              {/* <Cropper
                 image={image}
                 crop={crop}
                 zoom={zoom}
@@ -208,7 +216,8 @@ export default function Home() {
                 rotation={rotation}
                 onRotationChange={setRotation}
                 onCropComplete={onCropComplete}
-              />
+              /> */}
+              <PerspectiveCropper imageUrl={image} onPointsChange={setCornerPoints} />
             </div>
           )}
         </div>
@@ -284,7 +293,7 @@ export default function Home() {
       </div>
 
       {/* Crop Button */}
-      {croppedAreaPixels && (
+      {cornerPoints && cornerPoints.length === 4  && (
         <div className="text-center">
           <button
             onClick={handleFinalDownload}
@@ -295,7 +304,7 @@ export default function Home() {
         </div>
       )}
 
-      {croppedAreaPixels && (
+      {cornerPoints && cornerPoints.length === 4 && (
         <div className="text-center">
           <button
             onClick={handleSingleCrop}
