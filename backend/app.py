@@ -89,6 +89,10 @@ def crop_image():
                 points_homogeneous = np.hstack([original_points, ones])  # shape (4, 3)
                 rotated_points = (M_rot @ points_homogeneous.T).T  # shape (4, 2)
 
+                print("Original points:", original_points)
+                print("Rotated points:", rotated_points)
+                print("Image shape (rotated):", rotated_image.shape)
+
                 # Step 5: Use rotated points as source for warp
                 src_points = np.float32(rotated_points)
             except Exception as e:

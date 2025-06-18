@@ -5,7 +5,7 @@ import Cropper from "react-easy-crop";
 import axios from "axios";
 import Dropdown from "@/components/Dropdown";
 import Form from "@/components/Form";
-import PerspectiveCropper from "@/components/PerspectiveCropper";
+import RectCropper from "@/components/RectCropper";
 
 export default function Home() {
   const [images, setImages] = useState([]);
@@ -152,6 +152,9 @@ export default function Home() {
     }
   };
 
+  //console.log(cornerPoints);
+  
+
   const handleValueChange = (value) => {
     setCurrentValue(value);
   };
@@ -216,8 +219,9 @@ export default function Home() {
                 rotation={rotation}
                 onRotationChange={setRotation}
                 onCropComplete={onCropComplete}
-              /> */}
-              <PerspectiveCropper imageUrl={image} onPointsChange={setCornerPoints} />
+              />  */}
+              <RectCropper imageUrl={image} onCropComplete={(point) => setCornerPoints(point)} />
+            
             </div>
           )}
         </div>
