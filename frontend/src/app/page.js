@@ -17,7 +17,7 @@ export default function Home() {
   const [folderName, setFolderName] = useState("");
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [cropRect, setCropRect] = useState(null);
   const [croppedImageUrl, setCroppedImageUrl] = useState(null);
   const [aspectWidth, setAspectWidth] = useState(4);
   const [aspectHeight, setAspectHeight] = useState(3);
@@ -88,23 +88,23 @@ export default function Home() {
       currentValue,
       condition,
       rotation,
-      // x: croppedAreaPixels.x,
-      // y: croppedAreaPixels.y,
-      // w: croppedAreaPixels.width,
-      // h: croppedAreaPixels.height,
-      points: cornerPoints
+      x: cropRect.x,
+      y: cropRect.y,
+      w: cropRect.w,
+      h: cropRect.h,
+      points: cornerPoints,
     };
     setCroppedItems((prev) => [...prev, newItem]);
     if (currentIndex % 2 !== 0) {
       setFrom(to);
-      setTo("");
+      setTo(""); 
     }
     //setFrom(to);
     //setTo('');
+    console.log("current item:", newItem);
     setCurrentIndex((prev) => prev + 1);
   };
 
-  console.log("current index:", currentIndex);
 
   const handleFinalDownload = async () => {
     const formData = new FormData();
@@ -118,15 +118,14 @@ export default function Home() {
       formData.append(prefix + "quality", item.currentValue);
       formData.append(prefix + "condition", item.condition);
       formData.append(prefix + "rotation", item.rotation);
-      // formData.append(prefix + "x", item.x);
-      // formData.append(prefix + "y", item.y);
-      // formData.append(prefix + "w", item.w);
-      // formData.append(prefix + "h", item.h);
+      formData.append(prefix + "x", item.x);
+      formData.append(prefix + "y", item.y);
+      formData.append(prefix + "w", item.w);
+      formData.append(prefix + "h", item.h);
       item.points.forEach((pt, i) => {
         formData.append(`${prefix}pt${i}_x`, pt.x);
         formData.append(`${prefix}pt${i}_y`, pt.y);
-
-      })
+      });
     });
 
     try {
@@ -153,11 +152,25 @@ export default function Home() {
   };
 
   //console.log(cornerPoints);
-  
 
   const handleValueChange = (value) => {
     setCurrentValue(value);
   };
+
+  const handleCropComplete = useCallback(
+    (crop) => {
+      if (crop?.width && crop?.height) {
+        const corners = [
+          { x: crop.x, y: crop.y },
+          { x: crop.x + crop.width, y: crop.y },
+          { x: crop.x + crop.width, y: crop.y + crop.height },
+          { x: crop.x, y: crop.y + crop.height },
+        ];
+        setCornerPoints(corners);
+      }
+    },
+    [setCornerPoints]
+  ); // Include any dependency actually used inside
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
       <h1 className="text-2xl font-bold text-center">
@@ -207,8 +220,7 @@ export default function Home() {
         {/* Left: Cropper */}
         <div className="flex-1">
           {image && (
-            <div
-              className="relative w-full aspect-[4/3] h-[400px] bg-black rounded overflow-hidden">
+            <div className="relative max-w-full max-h-full bg-black rounded">
               {/* <Cropper
                 image={image}
                 crop={crop}
@@ -220,8 +232,17 @@ export default function Home() {
                 onRotationChange={setRotation}
                 onCropComplete={onCropComplete}
               />  */}
-              <RectCropper imageUrl={image} onCropComplete={(point) => setCornerPoints(point)} />
-            
+              <RectCropper
+                imageUrl={image}
+                onCropComplete={(crop) => {
+                  setCropRect({
+                    x: crop.x,
+                    y: crop.y,
+                    w: crop.width, 
+                    h: crop.height,
+                  })
+                }}
+              />
             </div>
           )}
         </div>
@@ -297,7 +318,7 @@ export default function Home() {
       </div>
 
       {/* Crop Button */}
-      {cornerPoints && cornerPoints.length === 4  && (
+      {cropRect && (
         <div className="text-center">
           <button
             onClick={handleFinalDownload}
@@ -308,7 +329,7 @@ export default function Home() {
         </div>
       )}
 
-      {cornerPoints && cornerPoints.length === 4 && (
+      {cropRect && (
         <div className="text-center">
           <button
             onClick={handleSingleCrop}
@@ -330,7 +351,6 @@ export default function Home() {
           />
         </div>
       )}
-
     </div>
   );
 }

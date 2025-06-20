@@ -54,73 +54,15 @@ def crop_image():
             rotation = float(form_data.get(prefix + 'rotation', '0'))
 
             # Get crop dimensions (your frontend must provide them)
-            # x = int(form_data.get(prefix + 'x', 0))
-            # y = int(form_data.get(prefix + 'y', 0))
-            # w = int(form_data.get(prefix + 'w', image.shape[1]))
-            # h = int(form_data.get(prefix + 'h', image.shape[0])) 
+            x = int(float(form_data.get(prefix + 'x', 0)))
+            y = int(float(form_data.get(prefix + 'y', 0)))
+            w = int(float(form_data.get(prefix + 'w', image.shape[1])))
+            h = int(float(form_data.get(prefix + 'h', image.shape[0])))
 
             rotated_image = rotate_image(image, rotation)  # Rotate the image by 90 degrees
 
-            # get 4 corner points (pt0 to pt3)
-            try:
-                # Step 1: Parse source points from original image
-                original_points = np.float32([
-                    [float(form_data[f'{prefix}pt0_x']), float(form_data[f'{prefix}pt0_y'])],
-                    [float(form_data[f'{prefix}pt1_x']), float(form_data[f'{prefix}pt1_y'])],
-                    [float(form_data[f'{prefix}pt2_x']), float(form_data[f'{prefix}pt2_y'])],
-                    [float(form_data[f'{prefix}pt3_x']), float(form_data[f'{prefix}pt3_y'])]
-                ])
-
-                # Step 2: Get same rotation matrix as in rotate_image()
-                (h, w) = image.shape[:2]
-                center = (w / 2, h / 2)
-                M_rot = cv2.getRotationMatrix2D(center, rotation, 1.0)
-
-                # Step 3: Compute new bounds (also from rotate_image)
-                cos = np.abs(M_rot[0, 0])
-                sin = np.abs(M_rot[0, 1])
-                new_w = int((h * sin) + (w * cos))
-                new_h = int((h * cos) + (w * sin))
-                M_rot[0, 2] += (new_w / 2) - center[0]
-                M_rot[1, 2] += (new_h / 2) - center[1]
-
-                # Step 4: Apply affine transform to each point
-                ones = np.ones((4, 1))
-                points_homogeneous = np.hstack([original_points, ones])  # shape (4, 3)
-                rotated_points = (M_rot @ points_homogeneous.T).T  # shape (4, 2)
-
-                print("Original points:", original_points)
-                print("Rotated points:", rotated_points)
-                print("Image shape (rotated):", rotated_image.shape)
-
-                # Step 5: Use rotated points as source for warp
-                src_points = np.float32(rotated_points)
-            except Exception as e:
-                print(f"Error reading points: {e}")
-                continue
-
-            width_top = np.linalg.norm(src_points[0] - src_points[3])
-            width_bottom = np.linalg.norm(src_points[1] - src_points[2])
-            max_width = int(max(width_top, width_bottom))
-
-            height_left = np.linalg.norm(src_points[0] - src_points[3])
-            height_right = np.linalg.norm(src_points[1] - src_points[2])
-            max_height = int(max(height_left, height_right))
-
-            # Destination points
-            dst_points = np.float32([
-                [0, 0],
-                [max_width - 1, 0],
-                [max_width - 1, max_height - 1],
-                [0, max_height - 1]
-            ])
-
-            M = cv2.getPerspectiveTransform(src_points, dst_points)
-            warped = cv2.warpPerspective(rotated_image, M, (max_width, max_height))
-
-
             # Now crop from rotated_image, not image
-            #cropped_image = rotated_image[y:y+h, x:x+w]
+            cropped_image = rotated_image[y:y+h, x:x+w]
 
 
              # crop image
@@ -134,7 +76,7 @@ def crop_image():
             #print(f"Download name: {download_name}")
 
             # encode image to jpg
-            _, buffer = cv2.imencode('.jpg', warped, [cv2.IMWRITE_JPEG_QUALITY, quality])
+            _, buffer = cv2.imencode('.jpg', cropped_image, [cv2.IMWRITE_JPEG_QUALITY, quality])
             filename = f'{hole_id}_{condition}_{drill_from}_{drill_to}.jpg'
 
             zip_file.writestr(filename, buffer.tobytes())
