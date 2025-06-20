@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 
@@ -14,36 +14,44 @@ function RectCropper({ imageUrl, onCropComplete }) {
     y: 50,
   });
   const [completedCrop, setCompletedCrop] = useState(null);
+  const [naturalSize, setNaturalSize] = useState(null);
 
   const onLoad = (img) => {
     imgRef.current = img;
+    setNaturalSize({
+      width: img.naturalWidth,
+      height: img.naturalHeight,
+    });
   };
 
-  // useEffect(() => {
-  //   if (
-  //     completedCrop &&
-  //     completedCrop.width > 0 &&
-  //     completedCrop.height > 0 &&
-  //     onCropComplete
-  //   ) {
-  //     onCropComplete(completedCrop);
-  //   }
-  // }, [
-  //   completedCrop?.x,
-  //   completedCrop?.y,
-  //   completedCrop?.width,
-  //   completedCrop?.height,
-  //   onCropComplete,
-  // ]);
   return (
-    <div className="max-w-full max-h-full display-block">
+    <div className="max-w-full max-h-full">
       <ReactCrop
         crop={crop}
         onChange={(newCrop) => setCrop(newCrop)}
         onComplete={(c) => {
           setCompletedCrop(c);
-          if (c.width && c.height && onCropComplete) {
-            onCropComplete(c);
+
+          if (
+            c.width &&
+            c.height &&
+            onCropComplete &&
+            naturalSize &&
+            imgRef.current
+          ) {
+            const rendered = imgRef.current.getBoundingClientRect();
+
+            const scaleX = naturalSize.width / rendered.width;
+            const scaleY = naturalSize.height / rendered.height;
+
+            const scaledCrop = {
+              x: Math.round(c.x * scaleX),
+              y: Math.round(c.y * scaleY),
+              width: Math.round(c.width * scaleX),
+              height: Math.round(c.height * scaleY),
+            };
+
+            onCropComplete(scaledCrop);
           }
         }}
         keepSelection
@@ -51,7 +59,7 @@ function RectCropper({ imageUrl, onCropComplete }) {
         <img
           src={imageUrl}
           onLoad={(e) => onLoad(e.target)}
-          className="max-w-full max-h-full display-block"
+          className="w-auto h-auto max-w-full max-h-[600px] object-contain block"
         />
       </ReactCrop>
     </div>

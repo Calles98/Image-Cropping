@@ -105,6 +105,9 @@ export default function Home() {
     setCurrentIndex((prev) => prev + 1);
   };
 
+  console.log(croppedItems);
+  
+
 
   const handleFinalDownload = async () => {
     const formData = new FormData();
@@ -220,7 +223,7 @@ export default function Home() {
         {/* Left: Cropper */}
         <div className="flex-1">
           {image && (
-            <div className="relative max-w-full max-h-full bg-black rounded">
+            <div className="relative w-full max-w-full max-h-full bg-black rounded">
               {/* <Cropper
                 image={image}
                 crop={crop}
