@@ -25,7 +25,7 @@ function RectCropper({ imageUrl, onCropComplete }) {
   };
 
   return (
-    <div className="w-full h-[400px] flex items-center justify-center bg-black">
+    <div className="w-full h-full flex items-center justify-center bg-black">
       <ReactCrop
         crop={crop}
         onChange={(newCrop) => setCrop(newCrop)}
@@ -66,7 +66,7 @@ function RectCropper({ imageUrl, onCropComplete }) {
             });
 
           }}
-          className="h-full w-auto object-scale-down block"
+          className="h-full w-auto object-contain block"
         />
       </ReactCrop>
     </div>

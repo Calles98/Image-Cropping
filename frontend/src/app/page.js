@@ -217,9 +217,9 @@ export default function Home() {
         </button>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex flex-col lg:flex-row gap-6 h-[90vh]">
         {/* Left: Cropper */}
-        <div className="flex-1">
+        <div className="flex-[2] overflow-hidden">
           {image && (
             <div className="relative w-full max-w-full max-h-full bg-black rounded">
               {/* <Cropper
@@ -248,7 +248,7 @@ export default function Home() {
           )}
         </div>
         {/* Right: Controls */}
-        <div className="w-full lg:w-[400px] space-y-4">
+        <div className="flex-[1] w-full lg:w-[400px] space-y-4">
           {/* Form, aspect, controls, dropdowns */}
           <div className="bg-slate-100 p-4 rounded-md shadow-md">
             <Form
@@ -317,18 +317,6 @@ export default function Home() {
           />
         </div>
       </div>
-
-      <RectCropper
-        imageUrl={image}
-        onCropComplete={(crop) => {
-          setCropRect({
-            x: crop.x,
-            y: crop.y,
-            w: crop.width,
-            h: crop.height,
-          });
-        }}
-      />
 
       {/* Crop Button */}
       {cropRect && (
