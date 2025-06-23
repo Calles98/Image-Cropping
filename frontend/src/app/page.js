@@ -97,7 +97,7 @@ export default function Home() {
     setCroppedItems((prev) => [...prev, newItem]);
     if (currentIndex % 2 !== 0) {
       setFrom(to);
-      setTo(""); 
+      setTo("");
     }
     //setFrom(to);
     //setTo('');
@@ -106,8 +106,6 @@ export default function Home() {
   };
 
   console.log(croppedItems);
-  
-
 
   const handleFinalDownload = async () => {
     const formData = new FormData();
@@ -241,9 +239,9 @@ export default function Home() {
                   setCropRect({
                     x: crop.x,
                     y: crop.y,
-                    w: crop.width, 
+                    w: crop.width,
                     h: crop.height,
-                  })
+                  });
                 }}
               />
             </div>
@@ -319,6 +317,18 @@ export default function Home() {
           />
         </div>
       </div>
+
+      <RectCropper
+        imageUrl={image}
+        onCropComplete={(crop) => {
+          setCropRect({
+            x: crop.x,
+            y: crop.y,
+            w: crop.width,
+            h: crop.height,
+          });
+        }}
+      />
 
       {/* Crop Button */}
       {cropRect && (
