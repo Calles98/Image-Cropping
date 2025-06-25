@@ -4,7 +4,7 @@ import React, { useRef, useState } from "react";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 
-function RectCropper({ imageUrl, onCropComplete }) {
+function RectCropper({ imageUrl, onCropComplete, rotation = 0 }) {
   const imgRef = useRef(null);
   const [crop, setCrop] = useState({
     unit: "px",
@@ -64,9 +64,9 @@ function RectCropper({ imageUrl, onCropComplete }) {
               width: e.target.naturalWidth,
               height: e.target.naturalHeight,
             });
-
           }}
           className="h-full w-auto object-contain block"
+          style={{ transform: `rotate(${rotation}deg)` }}
         />
       </ReactCrop>
     </div>

@@ -16,10 +16,7 @@ const Dropdown = ({ currentValue, handleValueChange }) => {
 
   useEffect(() => {
     function handleClickOutside(event) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsOpen(false);
       }
     }
@@ -30,52 +27,52 @@ const Dropdown = ({ currentValue, handleValueChange }) => {
   }, []);
 
   return (
-    <div ref={dropdownRef} className="absolute w-full py-6 pb-8 z-50">
-      <div className="relative inline-block">
-        <button
-          type="button"
-          className="px-4 py-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm inline-flex items-center"
-          onClick={toggleDropdown}
+    <div ref={dropdownRef} className="relative z-50 inline-block">
+      {/* Button */}
+      <button
+        type="button"
+        className="px-4 py-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm inline-flex items-center hover:cursor-pointer"
+        onClick={toggleDropdown}
+      >
+        {currentValue}{" "}
+        <svg
+          className="w-2.5 h-2.5 ml-2.5"
+          aria-hidden="true"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 10 6"
         >
-          {currentValue}{" "}
-          <svg
-            className="w-2.5 h-2.5 ml-2.5"
-            aria-hidden="true"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 10 6"
-          >
-            <path
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="m1 1 4 4 4-4"
-            />
-          </svg>
-        </button>
+          <path
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="m1 1 4 4 4-4"
+          />
+        </svg>
+      </button>
 
-        {isOpen && (
-          <div className="origin-top-right absolute left-0 mt-2 w-44 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5">
-            <ul
-              role="menu"
-              aria-orientation="vertical"
-              aria-labelledby="options-menu"
-            >
-              {[20, 40, 50, 60, 70, 80, 90].map((item) => (
-                <li
-                  key={item}
-                  className="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
-                  role="menuitem"
-                  onClick={() => handleValueChange(item)}
-                >
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
+      {/* Dropdown Menu */}
+      {isOpen && (
+        <div className="origin-top-right absolute left-0 mt-2 w-44 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+          <ul
+            role="menu"
+            aria-orientation="vertical"
+            aria-labelledby="options-menu"
+          >
+            {[20, 40, 50, 60, 70, 80, 90].map((item) => (
+              <li
+                key={item}
+                className="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
+                role="menuitem"
+                onClick={() => handleValueChange(item)}
+              >
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 };

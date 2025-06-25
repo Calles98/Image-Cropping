@@ -19,13 +19,13 @@ function Form({ condition, setCondition, holeId, setHoleId, from, setFrom, to, s
                 <label className="pr-2">
                   Dry
                 </label>
-                <input type="radio" name="condtion" value="D" checked={condition === 'D'} onChange={(e) => setCondition(e.target.value)} /> 
+                <input type="radio" name="condtion" value="D" checked={condition === 'D'} onChange={(e) => setCondition(e.target.value)} className='hover:cursor-pointer' /> 
               </div>
               <div className=''>
                 <label className="pr-2">
                   Wet
                 </label>
-                <input type="radio" name="condition" value="W" checked={condition === 'W'} onChange={(e) => setCondition(e.target.value)} /> 
+                <input type="radio" name="condition" value="W" checked={condition === 'W'} onChange={(e) => setCondition(e.target.value)} className='hover:cursor-pointer' /> 
               </div> 
             </div>
             <label htmlFor="">From:</label>
