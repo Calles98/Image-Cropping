@@ -226,9 +226,9 @@ export default function Home() {
 
       <div className="flex flex-col lg:flex-row gap-6 h-auto ">
         {/* Left: Cropper */}
-        <div className="flex-[2] overflow-hidden">
+        <div className="flex-[2] overflow-hidden max-h-[90vh]">
           {image && (
-            <div className="relative w-full max-w-full max-h-full bg-black rounded">
+            <div className="relative w-full aspect-[9/10] bg-black rounded">
               {/* <Cropper
                 image={image}
                 crop={crop}
