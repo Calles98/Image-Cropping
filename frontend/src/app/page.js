@@ -243,6 +243,7 @@ export default function Home() {
                     h: crop.height,
                   });
                 }}
+                rotation={rotation}
               />
             </div>
           )}
