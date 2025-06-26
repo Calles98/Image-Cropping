@@ -4,7 +4,7 @@ import React, { useRef, useState } from "react";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 
-function RectCropper({ imageUrl, onCropComplete, rotation = 0 }) {
+function RectCropper({ imageUrl, onCropComplete }) {
   const imgRef = useRef(null);
   const [crop, setCrop] = useState({
     unit: "px",
@@ -64,9 +64,13 @@ function RectCropper({ imageUrl, onCropComplete, rotation = 0 }) {
               width: e.target.naturalWidth,
               height: e.target.naturalHeight,
             });
+
           }}
           className="h-full w-auto object-contain block"
+<<<<<<< HEAD
           style={{ transform: rotate(${rotation}deg) }}
+=======
+>>>>>>> parent of 1ffd127 (Fixed aesthetic issues and responsive issues)
         />
       </ReactCrop>
     </div>

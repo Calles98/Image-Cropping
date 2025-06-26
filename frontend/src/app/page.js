@@ -38,11 +38,9 @@ export default function Home() {
   }, []);
 
   const handleFolderUpload = (e) => {
-    const files = Array.from(e.target.files)
-      .filter((file) => file.type.startsWith("image/"))
-      .sort((a, b) =>
-        a.name.localeCompare(b.name, undefined, { numeric: true })
-      );
+    const files = Array.from(e.target.files).filter((file) =>
+      file.type.startsWith("image/")
+    );
     if (files.length === 0) return;
     setImages(files);
     setImagedFiles(files);
@@ -97,12 +95,12 @@ export default function Home() {
       points: cornerPoints,
     };
     setCroppedItems((prev) => [...prev, newItem]);
-    /* if (currentIndex % 2 !== 0) {
+    if (currentIndex % 2 !== 0) {
       setFrom(to);
       setTo("");
-    } */
-    setFrom(to);
-    setTo("");
+    }
+    //setFrom(to);
+    //setTo('');
     console.log("current item:", newItem);
     setCurrentIndex((prev) => prev + 1);
   };
@@ -205,11 +203,7 @@ export default function Home() {
 
       {/* Navigation */}
       <div className="flex justify-between mt-4">
-        <button
-          disabled={currentIndex === 0}
-          onClick={handlePrev}
-          className="hover:cursor-pointer"
-        >
+        <button disabled={currentIndex === 0} onClick={handlePrev}>
           ⬅️ Prev
         </button>
         <span>
@@ -218,13 +212,12 @@ export default function Home() {
         <button
           disabled={currentIndex === images.length - 1}
           onClick={handleNext}
-          className="hover:cursor-pointer"
         >
           Next ➡️
         </button>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6 h-auto ">
+      <div className="flex flex-col lg:flex-row gap-6 h-[90vh]">
         {/* Left: Cropper */}
         <div className="flex-[2] overflow-hidden max-h-[90vh]">
           {image && (
@@ -250,7 +243,6 @@ export default function Home() {
                     h: crop.height,
                   });
                 }}
-                rotation={rotation}
               />
             </div>
           )}
@@ -271,10 +263,36 @@ export default function Home() {
             />
           </div>
 
-          <div className="bg-white p-4 rounded-md space-y-2">
+          <div className="bg-white p-4 rounded-md space-y-4">
             {/* Left Panel – Aspect & Quality */}
-            <div className="w-full md:w-1/2 p-4 space-y-2">
+            <div className="w-full md:w-1/2 p-4 space-y-4">
               <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1">
+                  <label className="block mb-1 text-sm font-medium">
+                    Aspect Width: {aspectWidth}
+                  </label>
+                  <input
+                    type="range"
+                    min="1"
+                    max="20"
+                    value={aspectWidth}
+                    onChange={(e) => setAspectWidth(Number(e.target.value))}
+                    className="w-full"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="block mb-1 text-sm font-medium">
+                    Aspect Height: {aspectHeight}
+                  </label>
+                  <input
+                    type="range"
+                    min="1"
+                    max="20"
+                    value={aspectHeight}
+                    onChange={(e) => setAspectHeight(Number(e.target.value))}
+                    className="w-full"
+                  />
+                </div>
                 <div className="my-4">
                   <label className="block mb-1 text-sm font-medium">
                     Rotation: {rotation}°
@@ -285,7 +303,7 @@ export default function Home() {
                     max="180"
                     value={rotation}
                     onChange={(e) => setRotation(Number(e.target.value))}
-                    className="w-full hover:cursor-ew-resize"
+                    className="w-full"
                   />
                 </div>
               </div>
@@ -305,7 +323,7 @@ export default function Home() {
         <div className="text-center">
           <button
             onClick={handleFinalDownload}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded hover:cursor-pointer"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded"
           >
             Crop & Download
           </button>
@@ -316,7 +334,7 @@ export default function Home() {
         <div className="text-center">
           <button
             onClick={handleSingleCrop}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded hover:cursor-pointer"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded"
           >
             Add image
           </button>
