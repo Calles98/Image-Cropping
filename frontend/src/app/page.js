@@ -38,9 +38,11 @@ export default function Home() {
   }, []);
 
   const handleFolderUpload = (e) => {
-    const files = Array.from(e.target.files).filter((file) =>
-      file.type.startsWith("image/")
-    );
+    const files = Array.from(e.target.files)
+      .filter((file) => file.type.startsWith("image/"))
+      .sort((a, b) =>
+        a.name.localeCompare(b.name, undefined, { numeric: true })
+      );
     if (files.length === 0) return;
     setImages(files);
     setImagedFiles(files);
@@ -203,13 +205,18 @@ export default function Home() {
 
       {/* Navigation */}
       <div className="flex justify-between mt-4">
-        <button disabled={currentIndex === 0} onClick={handlePrev}>
+        <button
+          className="hover:cursor-pointer"
+          disabled={currentIndex === 0}
+          onClick={handlePrev}
+        >
           ⬅️ Prev
         </button>
         <span>
           {currentIndex + 1} / {images.length}
         </span>
         <button
+          className="hover:cursor-pointer"
           disabled={currentIndex === images.length - 1}
           onClick={handleNext}
         >
@@ -217,11 +224,12 @@ export default function Home() {
         </button>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6 h-[90vh]">
+      <div className="flex flex-col lg:flex-row gap-6 h-auto">
         {/* Left: Cropper */}
         <div className="flex-[2] overflow-hidden max-h-[90vh]">
           {image && (
-            <div className="relative w-full aspect-[9/10] bg-black rounded">
+            // <div className="relative w-full aspect-[9/10] bg-black border rounded-md">
+            <div>
               {/* <Cropper
                 image={image}
                 crop={crop}
@@ -268,32 +276,6 @@ export default function Home() {
             {/* Left Panel – Aspect & Quality */}
             <div className="w-full md:w-1/2 p-4 space-y-4">
               <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1">
-                  <label className="block mb-1 text-sm font-medium">
-                    Aspect Width: {aspectWidth}
-                  </label>
-                  <input
-                    type="range"
-                    min="1"
-                    max="20"
-                    value={aspectWidth}
-                    onChange={(e) => setAspectWidth(Number(e.target.value))}
-                    className="w-full"
-                  />
-                </div>
-                <div className="flex-1">
-                  <label className="block mb-1 text-sm font-medium">
-                    Aspect Height: {aspectHeight}
-                  </label>
-                  <input
-                    type="range"
-                    min="1"
-                    max="20"
-                    value={aspectHeight}
-                    onChange={(e) => setAspectHeight(Number(e.target.value))}
-                    className="w-full"
-                  />
-                </div>
                 <div className="my-4">
                   <label className="block mb-1 text-sm font-medium">
                     Rotation: {rotation}°
@@ -304,7 +286,7 @@ export default function Home() {
                     max="180"
                     value={rotation}
                     onChange={(e) => setRotation(Number(e.target.value))}
-                    className="w-full"
+                    className="w-full hover:cursor-ew-resize"
                   />
                 </div>
               </div>
@@ -324,7 +306,7 @@ export default function Home() {
         <div className="text-center">
           <button
             onClick={handleFinalDownload}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded hover:cursor-pointer"
           >
             Crop & Download
           </button>
@@ -335,7 +317,7 @@ export default function Home() {
         <div className="text-center">
           <button
             onClick={handleSingleCrop}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded hover:cursor-pointer"
           >
             Add image
           </button>

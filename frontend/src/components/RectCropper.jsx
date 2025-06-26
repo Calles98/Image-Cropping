@@ -25,7 +25,7 @@ function RectCropper({ imageUrl, onCropComplete, rotation = 0 }) {
   };
 
   return (
-    <div className="w-full h-full flex items-center justify-center bg-black">
+    <div className="w-full h-full flex items-center justify-center bg-black rounded-md">
       <ReactCrop
         crop={crop}
         onChange={(newCrop) => setCrop(newCrop)}
