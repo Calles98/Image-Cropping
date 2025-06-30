@@ -57,6 +57,43 @@ export default function Home() {
     reader.readAsDataURL(file);
   };
 
+  const handleAutomaticCrop = async () => {
+    if (images.length === 0) {
+      alert("Please upload a folder with images first.");
+      return;
+    }
+
+    const formData = new FormData();
+    for (let i = 0; i < images.length; i++) {
+      formData.append("images", images[i]);
+      formData.append("quality", currentValue);
+    }
+
+    console.log([...formData]);
+
+    try {
+      const response = await axios.post(
+        "http://127.0.0.1:5000/auto-crop",
+        formData,
+        {
+          responseType: "blob",
+        }
+      );
+
+      const blob = new Blob([response.data], { type: "application/zip" });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "cropped_images.zip";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      console.error("Download failed:", err);
+    }
+  };
+
   console.log(images);
 
   useEffect(() => {
@@ -229,7 +266,7 @@ export default function Home() {
         <div className="flex-[2] overflow-hidden max-h-[90vh]">
           {image && (
             // <div className="relative w-full aspect-[9/10] bg-black border rounded-md">
-            <div>
+            <div className="rounded-md overflow-hidden">
               {/* <Cropper
                 image={image}
                 crop={crop}
@@ -312,6 +349,15 @@ export default function Home() {
           </button>
         </div>
       )}
+
+      <div className="text-center">
+        <button
+          onClick={handleAutomaticCrop}
+          className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded"
+        >
+          Automatic Crop
+        </button>
+      </div>
 
       {cropRect && (
         <div className="text-center">
