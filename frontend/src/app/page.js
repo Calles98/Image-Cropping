@@ -6,6 +6,7 @@ import axios from "axios";
 import Dropdown from "@/components/Dropdown";
 import Form from "@/components/Form";
 import RectCropper from "@/components/RectCropper";
+import Button from "@/components/Button";
 
 export default function Home() {
   const [images, setImages] = useState([]);
@@ -261,12 +262,12 @@ export default function Home() {
         </button>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6 h-auto">
-        {/* Left: Cropper */}
-        <div className="flex-[2] overflow-hidden max-h-[90vh]">
+      <div className="flex flex-col">
+        <div className="flex overflow-hidden justify-center items-center">
           {image && (
             // <div className="relative w-full aspect-[9/10] bg-black border rounded-md">
-            <div className="rounded-md overflow-hidden">
+            <div className="w-full max-w-[450px] md:max-w-[1450px] h-full rounded-md overflow-hidden bg-black shadow">
+              {" "}
               {/* <Cropper
                 image={image}
                 crop={crop}
@@ -293,8 +294,70 @@ export default function Home() {
             </div>
           )}
         </div>
+
+        <div className="flex">
+          <div className="flex flex-col md:flex-row justify-center items-center space-y-3 md:space-y-0 md:space-x-5 w-full m-4">
+            {[
+              {
+                text: "Crop & Download",
+                handler: handleFinalDownload,
+                color: "blue",
+              },
+              {
+                text: "Automatic Crop",
+                handler: handleAutomaticCrop,
+                color: "green",
+              },
+              { text: "Add image", handler: handleSingleCrop, color: "blue" },
+            ].map(
+              (btn, idx) =>
+                image && (
+                  <Button
+                    handler={btn.handler}
+                    color={btn.color}
+                    text={btn.text}
+                    key={idx}
+                  />
+                )
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col md:flex-row justify-center gap-6 h-auto">
+        {/* Left: Cropper */}
+        {/*  <div className="flex-[2] overflow-hidden max-h-[90vh]">
+          {image && (
+            // <div className="relative w-full aspect-[9/10] bg-black border rounded-md">
+            <div className="rounded-md overflow-hidden"> */}
+        {/* <Cropper
+                image={image}
+                crop={crop}
+                zoom={zoom}
+                aspect={aspect}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                rotation={rotation}
+                onRotationChange={setRotation}
+                onCropComplete={onCropComplete}
+              />  */}
+        {/* <RectCropper
+                imageUrl={image}
+                onCropComplete={(crop) => {
+                  setCropRect({
+                    x: crop.x,
+                    y: crop.y,
+                    w: crop.width,
+                    h: crop.height,
+                  });
+                }}
+                rotation={rotation}
+              />
+            </div>
+          )}
+        </div> */}
         {/* Right: Controls */}
-        <div className="flex-[1] w-full lg:w-[400px] space-y-4">
+        <div className="flex w-full lg:w-[400px] space-y-4">
           {/* Form, aspect, controls, dropdowns */}
           <div className="bg-slate-100 p-4 rounded-md shadow-md">
             <Form
@@ -309,7 +372,7 @@ export default function Home() {
             />
           </div>
 
-          <div className="bg-white p-4 rounded-md space-y-4">
+          <div className="flex-1 bg-white p-4 rounded-md space-y-4">
             {/* Left Panel – Aspect & Quality */}
             <div className="w-full md:w-1/2 p-4 space-y-4">
               <div className="flex flex-col sm:flex-row gap-4">
@@ -328,18 +391,18 @@ export default function Home() {
                 </div>
               </div>
             </div>
+            <div className="flex flex-1 m-5 justify-center items-center">
+              <Dropdown
+                currentValue={currentValue}
+                handleValueChange={handleValueChange}
+              />
+            </div>
           </div>
-        </div>
-        <div className="m-5">
-          <Dropdown
-            currentValue={currentValue}
-            handleValueChange={handleValueChange}
-          />
         </div>
       </div>
 
       {/* Crop Button */}
-      {cropRect && (
+      {/* {cropRect && (
         <div className="text-center">
           <button
             onClick={handleFinalDownload}
@@ -368,10 +431,10 @@ export default function Home() {
             Add image
           </button>
         </div>
-      )}
+      )} */}
 
       {/* Preview */}
-      {croppedImageUrl && (
+      {/*  {croppedImageUrl && (
         <div className="text-center">
           <h3 className="text-lg font-semibold mt-4">Cropped Preview</h3>
           <img
@@ -380,7 +443,7 @@ export default function Home() {
             className="inline-block mt-2 border rounded max-w-full"
           />
         </div>
-      )}
+      )} */}
     </div>
   );
 }
