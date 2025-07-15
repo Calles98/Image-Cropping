@@ -7,24 +7,21 @@ import Dropdown from "@/components/Dropdown";
 import Form from "@/components/Form";
 import RectCropper from "@/components/RectCropper";
 import Button from "@/components/Button";
+import RangePicker from "@/components/RangePicker";
 
 export default function Home() {
   const [images, setImages] = useState([]);
   const [image, setImage] = useState(null);
+  const [imageFiles, setImageFiles] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [imageFiles, setImagedFiles] = useState([]);
-  const [imageCount, setImageCount] = useState(0);
   const [croppedItems, setCroppedItems] = useState([]);
   const [folderName, setFolderName] = useState("");
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
   const [cropRect, setCropRect] = useState(null);
-  const [croppedImageUrl, setCroppedImageUrl] = useState(null);
   const [aspectWidth, setAspectWidth] = useState(4);
   const [aspectHeight, setAspectHeight] = useState(3);
   const [rotation, setRotation] = useState(0);
   const [cornerPoints, setCornerPoints] = useState([]);
-  const [currentValue, setCurrentValue] = useState(50); // Default quality value
+  const [qualityValue, setQualityValue] = useState(50); // Default quality value
   // Additional form fields
   const [condition, setCondition] = useState("D");
   const [holeId, setHoleId] = useState("");
@@ -46,7 +43,7 @@ export default function Home() {
       );
     if (files.length === 0) return;
     setImages(files);
-    setImagedFiles(files);
+    setImageFiles(files);
     setFolderName(files[0].webkitRelativePath.split("/")[0]);
     setCurrentIndex(0);
     loadImage(files[0]);
@@ -67,7 +64,7 @@ export default function Home() {
     const formData = new FormData();
     for (let i = 0; i < images.length; i++) {
       formData.append("images", images[i]);
-      formData.append("quality", currentValue);
+      formData.append("quality", qualityValue);
     }
 
     console.log([...formData]);
@@ -125,7 +122,7 @@ export default function Home() {
       holeId,
       from,
       to,
-      currentValue,
+      qualityValue,
       condition,
       rotation,
       x: cropRect.x,
@@ -156,7 +153,7 @@ export default function Home() {
       formData.append(prefix + "hole-id", item.holeId.toUpperCase());
       formData.append(prefix + "from", item.from);
       formData.append(prefix + "to", item.to);
-      formData.append(prefix + "quality", item.currentValue);
+      formData.append(prefix + "quality", item.qualityValue);
       formData.append(prefix + "condition", item.condition);
       formData.append(prefix + "rotation", item.rotation);
       formData.append(prefix + "x", item.x);
@@ -195,7 +192,7 @@ export default function Home() {
   //console.log(cornerPoints);
 
   const handleValueChange = (value) => {
-    setCurrentValue(value);
+    setQualityValue(value);
   };
 
   const handleCropComplete = useCallback(
@@ -213,7 +210,8 @@ export default function Home() {
     [setCornerPoints]
   ); // Include any dependency actually used inside
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
+    <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+      {/* Title */}
       <h1 className="text-2xl font-bold text-center">
         Dynamic Aspect Ratio Cropper
       </h1>
@@ -222,7 +220,6 @@ export default function Home() {
       <div className="mb-4 flex items-center justify-center">
         <input
           type="file"
-          // accept="image/*"
           webkitdirectory="true"
           directory="true"
           multiple
@@ -262,103 +259,40 @@ export default function Home() {
         </button>
       </div>
 
-      <div className="flex flex-col">
-        <div className="flex overflow-hidden justify-center items-center">
-          {image && (
-            // <div className="relative w-full aspect-[9/10] bg-black border rounded-md">
-            <div className="w-full max-w-[450px] md:max-w-[1450px] h-full rounded-md overflow-hidden bg-black shadow">
-              {" "}
-              {/* <Cropper
-                image={image}
-                crop={crop}
-                zoom={zoom}
-                aspect={aspect}
-                onCropChange={setCrop}
-                onZoomChange={setZoom}
-                rotation={rotation}
-                onRotationChange={setRotation}
-                onCropComplete={onCropComplete}
-              />  */}
-              <RectCropper
-                imageUrl={image}
-                onCropComplete={(crop) => {
-                  setCropRect({
-                    x: crop.x,
-                    y: crop.y,
-                    w: crop.width,
-                    h: crop.height,
-                  });
-                }}
-                rotation={rotation}
-              />
-            </div>
-          )}
-        </div>
-
-        <div className="flex">
-          <div className="flex flex-col md:flex-row justify-center items-center space-y-3 md:space-y-0 md:space-x-5 w-full m-4">
-            {[
-              {
-                text: "Crop & Download",
-                handler: handleFinalDownload,
-                color: "blue",
-              },
-              {
-                text: "Automatic Crop",
-                handler: handleAutomaticCrop,
-                color: "green",
-              },
-              { text: "Add image", handler: handleSingleCrop, color: "blue" },
-            ].map(
-              (btn, idx) =>
-                image && (
-                  <Button
-                    handler={btn.handler}
-                    color={btn.color}
-                    text={btn.text}
-                    key={idx}
-                  />
-                )
-            )}
+      {/* Image + Controls */}
+      <div className="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0 justify-center items-start">
+        {/* Preview */}
+        {image && (
+          <div className="w-full max-w-[450px] md:max-w-[1450px] aspect-[9/10] rounded-md overflow-hidden bg-black shadow mx-auto">
+            <RectCropper
+              imageUrl={image}
+              onCropComplete={(crop) => {
+                setCropRect({
+                  x: crop.x,
+                  y: crop.y,
+                  w: crop.width,
+                  h: crop.height,
+                });
+              }}
+              rotation={rotation}
+            />
           </div>
-        </div>
-      </div>
+        )}
 
-      <div className="flex flex-col md:flex-row justify-center gap-6 h-auto">
-        {/* Left: Cropper */}
-        {/*  <div className="flex-[2] overflow-hidden max-h-[90vh]">
-          {image && (
-            // <div className="relative w-full aspect-[9/10] bg-black border rounded-md">
-            <div className="rounded-md overflow-hidden"> */}
-        {/* <Cropper
-                image={image}
-                crop={crop}
-                zoom={zoom}
-                aspect={aspect}
-                onCropChange={setCrop}
-                onZoomChange={setZoom}
-                rotation={rotation}
-                onRotationChange={setRotation}
-                onCropComplete={onCropComplete}
-              />  */}
-        {/* <RectCropper
-                imageUrl={image}
-                onCropComplete={(crop) => {
-                  setCropRect({
-                    x: crop.x,
-                    y: crop.y,
-                    w: crop.width,
-                    h: crop.height,
-                  });
-                }}
-                rotation={rotation}
-              />
+        {/* Form and Controls (Desktop) */}
+        <div className="hidden md:flex flex-col space-y-4 ml-4">
+          <div className="hidden md:flex">
+            <div className="flex flex-col justify-center items-stretch w-full m-4">
+              {image && (
+                <Button
+                  handler={handleAutomaticCrop}
+                  color="green"
+                  text="Automatic Crop"
+                />
+              )}
             </div>
-          )}
-        </div> */}
-        {/* Right: Controls */}
-        <div className="flex w-full lg:w-[400px] space-y-4">
-          {/* Form, aspect, controls, dropdowns */}
+          </div>
+
           <div className="bg-slate-100 p-4 rounded-md shadow-md">
             <Form
               condition={condition}
@@ -371,79 +305,157 @@ export default function Home() {
               setTo={setTo}
             />
           </div>
-
-          <div className="flex-1 bg-white p-4 rounded-md space-y-4">
-            {/* Left Panel – Aspect & Quality */}
-            <div className="w-full md:w-1/2 p-4 space-y-4">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="my-4">
-                  <label className="block mb-1 text-sm font-medium">
-                    Rotation: {rotation}°
-                  </label>
-                  <input
-                    type="range"
-                    min="-180"
-                    max="180"
-                    value={rotation}
-                    onChange={(e) => setRotation(Number(e.target.value))}
-                    className="w-full hover:cursor-ew-resize"
-                  />
-                </div>
+          <div className="flex flex-col">
+            {/* Buttons */}
+            <div className="hidden md:flex">
+              <div className="flex flex-col justify-center items-stretch gap-3 md:gap-5 w-full m-4">
+                {[
+                  {
+                    text: "Add image",
+                    handler: handleSingleCrop,
+                    color: "blue",
+                  },
+                  {
+                    text: "Crop & Download",
+                    handler: handleFinalDownload,
+                    color: "blue",
+                  },
+                  {
+                    text: "Reset Rotation",
+                    handler: () => setRotation(0),
+                    color: "blue",
+                  },
+                ].map(
+                  (btn, idx) =>
+                    image && (
+                      <Button
+                        handler={btn.handler}
+                        color={btn.color}
+                        text={btn.text}
+                        key={idx}
+                      />
+                    )
+                )}
               </div>
             </div>
-            <div className="flex flex-1 m-5 justify-center items-center">
-              <Dropdown
-                currentValue={currentValue}
-                handleValueChange={handleValueChange}
-              />
+
+            <div className="flex flex-row space-x-3 items-start">
+              <div className="w-full md:w-1/2 p-4 space-y-4">
+                <label className="block mb-1 text-sm font-medium">
+                  Rotation: {rotation}°
+                </label>
+                <input
+                  type="range"
+                  min="-180"
+                  max="180"
+                  value={rotation}
+                  onChange={(e) => setRotation(Number(e.target.value))}
+                  className="w-full hover:cursor-ew-resize"
+                />
+              </div>
+              <div className="pt-[26px]">
+                <Dropdown
+                  currentValue={qualityValue}
+                  handleValueChange={handleValueChange}
+                />
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Crop Button */}
-      {/* {cropRect && (
-        <div className="text-center">
-          <button
-            onClick={handleFinalDownload}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded hover:cursor-pointer"
-          >
-            Crop & Download
-          </button>
+      {/* Buttons */}
+      <div className="flex md:hidden">
+        <div className="flex flex-col md:flex-row justify-center items-stretch gap-3 md:gap-5 w-full m-4">
+          {[
+            {
+              text: "Automatic Crop",
+              handler: handleAutomaticCrop,
+              color: "green",
+            },
+            {
+              text: "Add image",
+              handler: handleSingleCrop,
+              color: "blue",
+            },
+            {
+              text: "Crop & Download",
+              handler: handleFinalDownload,
+              color: "blue",
+            },
+          ].map(
+            (btn, idx) =>
+              image && (
+                <Button
+                  handler={btn.handler}
+                  color={btn.color}
+                  text={btn.text}
+                  key={idx}
+                />
+              )
+          )}
         </div>
-      )}
-
-      <div className="text-center">
-        <button
-          onClick={handleAutomaticCrop}
-          className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded"
-        >
-          Automatic Crop
-        </button>
       </div>
 
-      {cropRect && (
-        <div className="text-center">
-          <button
-            onClick={handleSingleCrop}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded hover:cursor-pointer"
-          >
-            Add image
-          </button>
-        </div>
-      )} */}
+      {/* Controls for Mobile */}
+      <div className="flex flex-col md:hidden justify-center gap-6 h-auto">
+        <div className="flex flex-col w-full gap-4">
+          {/* Mobile Form */}
+          <div className="flex-[2] bg-slate-100 p-4 rounded-md shadow-md">
+            <Form
+              condition={condition}
+              setCondition={setCondition}
+              holeId={holeId}
+              setHoleId={setHoleId}
+              from={from}
+              setFrom={setFrom}
+              to={to}
+              setTo={setTo}
+            />
+          </div>
 
-      {/* Preview */}
-      {/*  {croppedImageUrl && (
-        <div className="text-center">
-          <h3 className="text-lg font-semibold mt-4">Cropped Preview</h3>
-          <img
-            src={croppedImageUrl}
-            alt="Cropped"
-            className="inline-block mt-2 border rounded max-w-full"
-          />
+          {/* Mobile Controls */}
+          <div className="flex-1 bg-white p-4 rounded-md space-y-4">
+            <div className="flex flex-col md:flex-row">
+              <Button
+                handler={() => setRotation(0)}
+                color="blue"
+                text="Reset Rotation"
+              />
+              {[
+                {
+                  label: "Rotation: {rotation}°",
+                  value: rotation,
+                  min: -180,
+                  max: 180,
+                  step: 1,
+                  onChange: (e) => setRotation(Number(e.target.value)),
+                },
+                {
+                  label: "Image Quality: {qualityValue}%",
+                  value: qualityValue,
+                  min: 20,
+                  max: 100,
+                  step: 10,
+                  onChange: (e) => setQualityValue(Number(e.target.value)),
+                },
+              ].map((picker, idx) => (
+                <RangePicker
+                  key={idx}
+                  label={picker.label
+                    .replace("{rotation}", rotation)
+                    .replace("{qualityValue}", qualityValue)}
+                  min={picker.min}
+                  max={picker.max}
+                  step={picker.step}
+                  value={picker.value}
+                  onChange={picker.onChange}
+                />
+              ))}
+            </div>
+          </div>
         </div>
-      )} */}
+      </div>
     </div>
   );
 }
