@@ -27,6 +27,7 @@ export default function Home() {
   const [holeId, setHoleId] = useState("");
   const [from, setFrom] = useState("0.00");
   const [to, setTo] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const aspect =
     aspectWidth && aspectHeight ? aspectWidth / aspectHeight : undefined;
@@ -49,6 +50,22 @@ export default function Home() {
     loadImage(files[0]);
   };
 
+  const handlePhotoUpload = (e) => {
+    const files = Array.from(e.target.files)
+      .filter((file) => file.type.startsWith("image/"))
+      .sort((a, b) =>
+        a.name.localeCompare(b.name, undefined, { numeric: true })
+      );
+
+    if (files.length === 0) return;
+
+    setImages(files);
+    setImageFiles(files);
+    setFolderName("Selected Images"); // Or any placeholder for mobile uploads
+    setCurrentIndex(0);
+    loadImage(files[0]);
+  };
+
   const loadImage = (file) => {
     const reader = new FileReader();
     reader.onload = () => setImage(reader.result);
@@ -56,6 +73,7 @@ export default function Home() {
   };
 
   const handleAutomaticCrop = async () => {
+    setIsLoading(true);
     if (images.length === 0) {
       alert("Please upload a folder with images first.");
       return;
@@ -71,7 +89,7 @@ export default function Home() {
 
     try {
       const response = await axios.post(
-        "http://127.0.0.1:5000/auto-crop",
+        "http://192.168.1.79:5000/auto-crop",
         formData,
         {
           responseType: "blob",
@@ -89,6 +107,8 @@ export default function Home() {
       link.remove();
     } catch (err) {
       console.error("Download failed:", err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -105,7 +125,7 @@ export default function Home() {
   }, [images, currentIndex]);
 
   const handleNext = () => {
-    if (currentIndex < images.length - 1) {
+    if (currentIndex <= images.length - 1) {
       setCurrentIndex((prevIndex) => prevIndex + 1);
     }
   };
@@ -139,12 +159,16 @@ export default function Home() {
     //setFrom(to);
     //setTo('');
     console.log("current item:", newItem);
-    setCurrentIndex((prev) => prev + 1);
+    if (currentIndex < images.length - 1) {
+      setCurrentIndex((prev) => prev + 1);
+    }
   };
 
   console.log(croppedItems);
 
   const handleFinalDownload = async () => {
+
+    setIsLoading(true);
     const formData = new FormData();
 
     croppedItems.forEach((item, index) => {
@@ -168,7 +192,7 @@ export default function Home() {
 
     try {
       const response = await axios.post(
-        "http://127.0.0.1:5000/crop",
+        "http://192.168.1.79:5000/crop",
         formData,
         {
           responseType: "blob",
@@ -186,6 +210,8 @@ export default function Home() {
       link.remove();
     } catch (err) {
       console.error("Download failed:", err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -210,14 +236,22 @@ export default function Home() {
     [setCornerPoints]
   ); // Include any dependency actually used inside
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+    
+    <div className={`max-w-5xl mx-auto px-4 py-8 space-y-6 ${isLoading ? "cursor-progress" : ""}`}>
+      {
+        isLoading && (
+          <div className="fixed inset-0 flex w-50 h-100 mx-auto my-auto items-center justify-center bg-gray-800 bg-opacity-50 z-50">
+            <div className="text-white">Processing...</div>
+          </div>
+        )
+      }
       {/* Title */}
       <h1 className="text-2xl font-bold text-center">
         Dynamic Aspect Ratio Cropper
       </h1>
 
-      {/* Image Upload */}
-      <div className="mb-4 flex items-center justify-center">
+      {/* Desktop Folder Upload */}
+      <div className="mb-4 hidden md:flex items-center justify-center">
         <input
           type="file"
           webkitdirectory="true"
@@ -225,13 +259,34 @@ export default function Home() {
           multiple
           onChange={handleFolderUpload}
           className="hidden"
-          id="folderinput"
+          id="folderinput-desktop"
         />
         <label
-          htmlFor="folderinput"
+          htmlFor="folderinput-desktop"
           className="p-2 bg-blue-600 rounded-md text-white hover:cursor-pointer"
         >
           Upload Folder
+        </label>
+        <span className="ml-4 text-gray-500">
+          {folderName ? folderName : "No folder selected"}
+        </span>
+      </div>
+
+      {/* Mobile Photo Upload */}
+      <div className="mb-4 flex items-center justify-center md:hidden">
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handlePhotoUpload}
+          className="hidden"
+          id="folderinput-mobile"
+        />
+        <label
+          htmlFor="folderinput-mobile"
+          className="p-2 bg-blue-600 rounded-md text-white hover:cursor-pointer"
+        >
+          Upload Images
         </label>
         <span className="ml-4 text-gray-500">
           {folderName ? folderName : "No folder selected"}
@@ -251,7 +306,7 @@ export default function Home() {
           {currentIndex + 1} / {images.length}
         </span>
         <button
-          className="hover:cursor-pointer"
+          className={`hover:cursor-pointer ${ currentIndex === images.length - 1 ? "opacity-15 cursor-not-allowed" : ""}`}
           disabled={currentIndex === images.length - 1}
           onClick={handleNext}
         >
@@ -263,7 +318,7 @@ export default function Home() {
       <div className="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0 justify-center items-start">
         {/* Preview */}
         {image && (
-          <div className="w-full max-w-[450px] md:max-w-[1450px] aspect-[9/10] rounded-md overflow-hidden bg-black shadow mx-auto">
+          <div className="w-full max-w-md md:max-w-[1450px] rounded-md overflow-hidden bg-black shadow mx-auto">
             <RectCropper
               imageUrl={image}
               onCropComplete={(crop) => {
@@ -314,16 +369,19 @@ export default function Home() {
                     text: "Add image",
                     handler: handleSingleCrop,
                     color: "blue",
+                    extraClasses: "",
                   },
                   {
                     text: "Crop & Download",
                     handler: handleFinalDownload,
                     color: "blue",
+                    extraClasses: "",
                   },
                   {
                     text: "Reset Rotation",
                     handler: () => setRotation(0),
                     color: "blue",
+                    extraClasses: "",
                   },
                 ].map(
                   (btn, idx) =>
@@ -332,6 +390,7 @@ export default function Home() {
                         handler={btn.handler}
                         color={btn.color}
                         text={btn.text}
+                        extraClasses={btn.extraClasses}
                         key={idx}
                       />
                     )

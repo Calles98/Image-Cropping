@@ -66,7 +66,7 @@ function RectCropper({ imageUrl, onCropComplete, rotation = 0 }) {
             });
 
           }}
-          className="h-full w-auto object-contain block"
+          className="max-w-full h-auto object-contain block"
 
           style={{ transform: `rotate(${rotation}deg)` }}
 

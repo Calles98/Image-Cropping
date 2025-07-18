@@ -1,4 +1,5 @@
-from flask import Flask, request, send_file
+import base64
+from flask import Flask, jsonify, request, send_file
 import numpy as np 
 import cv2
 import io
@@ -9,7 +10,7 @@ import re
 #import werkzeug.utils import secure_filename
 
 app = Flask(__name__)
-CORS(app, expose_headers=["Content-Disposition"]) # allows cross-origin requests from next.js
+CORS(app, supports_credentials=True, origins="*", expose_headers=["Content-Disposition"]) # allows cross-origin requests from next.js
 
 def rotate_image(image, angle):
     """Rotate image around its center with OpenCV."""
@@ -84,6 +85,43 @@ def crop_image():
             zip_file.writestr(filename, buffer.tobytes())
     zip_buffer.seek(0)
     return send_file(zip_buffer, mimetype='application/zip', as_attachment=True, download_name='cropped_images.zip')
+
+@app.route('/crop-mobile', methods=['POST'])
+def crop_image_mobile():
+    files = request.files.getlist('images')
+    form_data = request.form
+    results = []
+
+    for idx, file in enumerate(files):
+        file_bytes = np.frombuffer(file.read(), np.uint8)
+        image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+
+        prefix = f'file_{idx}_'
+        hole_id = form_data.get(f'{prefix}hole-id', 'hole')
+        drill_from = form_data.get(f'{prefix}from', '0')
+        drill_to = form_data.get(f'{prefix}to', '0')
+        quality = int(form_data.get(f'{prefix}quality', 80))
+        condition = form_data.get(f'{prefix}condition', 'D')
+        rotation = float(form_data.get(f'{prefix}rotation', 0))
+
+        x = int(float(form_data.get(f'{prefix}x', 0)))
+        y = int(float(form_data.get(f'{prefix}y', 0)))
+        w = int(float(form_data.get(f'{prefix}w', image.shape[1])))
+        h = int(float(form_data.get(f'{prefix}h', image.shape[0])))
+
+        rotated = rotate_image(image, rotation)
+        cropped = rotated[y:y+h, x:x+w]
+
+        _, buffer = cv2.imencode('.jpg', cropped, [cv2.IMWRITE_JPEG_QUALITY, quality])
+        base64_img = base64.b64encode(buffer).decode('utf-8')
+
+        results.append({
+            "filename": f"{hole_id}_{condition}_{drill_from}_{drill_to}.jpg",
+            "image": base64_img
+        })
+
+    return jsonify(results)
+
 
 
 @app.route('/auto-crop', methods=['POST'])
@@ -181,4 +219,4 @@ def auto_crop_image():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
