@@ -27,7 +27,7 @@ const Dropdown = ({ currentValue, handleValueChange }) => {
   }, []);
 
   return (
-    <div ref={dropdownRef} className="relative z-50 inline-block">
+    <div ref={dropdownRef} className="relative  inline-block">
       {/* Button */}
       <button
         type="button"
