@@ -60,7 +60,7 @@ const Dropdown = ({ currentValue, handleValueChange }) => {
             aria-orientation="vertical"
             aria-labelledby="options-menu"
           >
-            {[20, 40, 50, 60, 70, 80, 90].map((item) => (
+            {[20, 40, 50, 60, 70, 80, 90, 100].map((item) => (
               <li
                 key={item}
                 className="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"

@@ -11,9 +11,9 @@ function Button({ handler, color, text = "Click Me", extraClasses = "" }) {
     <div className="w-full text-center">
       <button
         onClick={handler}
-        className={`w-full h-[50px] md:h-full max-w-[240px] ${
+        className={`w-full text-white font-bold py-3 px-4 rounded-lg transition-colors ${
           colorClasses[color] || colorClasses.blue
-        } text-white px-10 rounded-md hover:cursor-pointer 
+        } hover:cursor-pointer 
     focus:outline-none focus:ring-2 focus:ring-offset-2 md:focus:ring-0 md:focus:outline-none focus:ring-blue-500 
     active:scale-95 active:ring-2 active:ring-offset-2 active:ring-blue-500 
     transition duration-50 ease-in-out ${extraClasses}`}

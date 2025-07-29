@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import Cropper from "react-easy-crop";
 import axios from "axios";
 import Dropdown from "@/components/Dropdown";
@@ -8,6 +8,8 @@ import Form from "@/components/Form";
 import RectCropper from "@/components/RectCropper";
 import Button from "@/components/Button";
 import RangePicker from "@/components/RangePicker";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 
 export default function Home() {
   const [images, setImages] = useState([]);
@@ -30,7 +32,34 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [showToast, setShowToast] = useState(false);
-  const [messageStatus, setMessageStatus] = useState("success");  
+  const [messageStatus, setMessageStatus] = useState("success");
+  const fileInputRef = useRef(null);
+
+  const handleResetAll = () => {
+    const confirm = window.confirm(
+      "Are you sure you want to reset all progress?"
+    );
+    if (!confirm) return;
+
+    setImages([]);
+    setImage(null);
+    setCurrentIndex(0);
+    setCropRect(null);
+    setRotation(0);
+    setCornerPoints([]);
+    setQualityValue(50);
+    setCondition("D");
+    setHoleId("");
+    setFrom("0.00");
+    setTo("");
+    setCroppedItems([]);
+    setFolderName("");
+
+    // ✅ Clear file input so re-uploading same folder works
+    if (fileInputRef.current) {
+      fileInputRef.current.value = null;
+    }
+  };
 
   const showConfirmation = (message) => {
     setToastMessage(message);
@@ -99,7 +128,7 @@ export default function Home() {
 
     try {
       const response = await axios.post(
-        "http://192.168.1.79:5000/auto-crop",
+        "http://192.168.10.208:5000/auto-crop",
         formData,
         {
           responseType: "blob",
@@ -122,7 +151,7 @@ export default function Home() {
     }
   };
 
-  console.log(images);
+  console.log(image);
 
   useEffect(() => {
     if (images.length > 0 && currentIndex < images.length) {
@@ -202,7 +231,7 @@ export default function Home() {
 
     try {
       const response = await axios.post(
-        "http://192.168.1.79:5000/crop",
+        "http://169.254.50.226:5000/crop",
         formData,
         {
           responseType: "blob",
@@ -249,7 +278,9 @@ export default function Home() {
     [setCornerPoints]
   ); // Include any dependency actually used inside
 
-  {/* Handle Keyboard navigation */}
+  {
+    /* Handle Keyboard navigation */
+  }
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "ArrowRight" && currentIndex < images.length - 1) {
@@ -261,190 +292,148 @@ export default function Home() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentIndex, images.length])
+  }, [currentIndex, images.length]);
 
   return (
-    <>
-      {/* Loading Spinner */}
-      {isLoading && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-black/30">
-          <svg
-            className="animate-spin h-8 w-8 text-white mr-4"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-              fill="none"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-            />
-          </svg>
-          <span className="text-white text-lg font-semibold">
-            Processing...
-          </span>
-        </div>
-      )}
-
-      {/* Show toast */}
-      {showToast && (
-        <div className={`fixed top-5 right-5 ${messageStatus === "success" ? "bg-green-400" : "bg-amber-600"} text-white px-4 py-2 rounded shadow z-50 transition-all`}>
-          {toastMessage}
-        </div>
-      )}
-
-      {/* Main Container */}
-
-      <div
-        className={`max-w-5xl mx-auto px-4 py-8 space-y-6 ${
-          isLoading ? "cursor-progress" : ""
-        }`}
-      >
-        {/* Title */}
-        <h1 className="text-2xl font-bold text-center">
-          Dynamic Aspect Ratio Cropper
-        </h1>
-
-        {/* Desktop Folder Upload */}
-        <div className="mb-4 hidden md:flex items-center justify-center">
-          <input
-            type="file"
-            webkitdirectory="true"
-            directory="true"
-            multiple
-            onChange={handleFolderUpload}
-            className="hidden"
-            id="folderinput-desktop"
-          />
-          <label
-            htmlFor="folderinput-desktop"
-            className="p-2 bg-blue-600 rounded-md text-white hover:cursor-pointer"
-          >
-            Upload Folder
-          </label>
-          <span className="ml-4 text-gray-500">
-            {folderName ? folderName : "No folder selected"}
-          </span>
-        </div>
-
-        {/* Mobile Photo Upload */}
-        <div className="mb-4 flex items-center justify-center md:hidden">
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={handlePhotoUpload}
-            className="hidden"
-            id="folderinput-mobile"
-          />
-          <label
-            htmlFor="folderinput-mobile"
-            className="p-2 bg-blue-600 rounded-md text-white hover:cursor-pointer"
-          >
-            Upload Images
-          </label>
-          <span className="ml-4 text-gray-500">
-            {folderName ? folderName : "No folder selected"}
-          </span>
-        </div>
-
-        {/* Navigation */}
-        <div className="flex justify-between mt-4">
-          <button
-            className={`px-4 py-2 rounded ${
-              currentIndex === 0
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-blue-500 text-white hover:bg-blue-600 hover:cursor-pointer"
-            }`}
-            disabled={currentIndex === 0}
-            onClick={handlePrev}
-          >
-            ⬅️ Prev
-          </button>
-          <span className="text-blue-600 font-semibold text-lg">
-            <span className="text-red-600 text-2xl">{currentIndex + 1}</span> /{" "}
-            {images.length}
-          </span>
-          <button
-            className={`px-4 py-2 rounded  ${
-              currentIndex === images.length - 1
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-blue-500 text-white hover:bg-blue-600 hover-cursor-pointer"
-            }`}
-            disabled={currentIndex === images.length - 1}
-            onClick={handleNext}
-          >
-            Next ➡️
-          </button>
-        </div>
-
-        {/* Progress bar */}
-        {images.length > 0 && (
-          <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
-            <div
-              className="bg-blue-600 h-2 rounded-full transition-all"
-              style={{
-                width: `${((currentIndex + 1) / images.length) * 100}%`,
-              }}
-            ></div>
+    <div className="flex flex-col min-h-screen font-sans bg-gray-50">
+      {/* Header */}
+      <header className="flex flex-row bg-white shadow-sm">
+        <div className="container mx-auto px-4 py-4 flex-1 md:flex space-y-10 md:space-y-0 justify-between items-center">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center text-white font-bold text-xl">
+              N
+            </div>
+            <h1 className=" text-2xl font-bold text-gray-800">
+              Aspect Ratio Cropper
+            </h1>
           </div>
-        )}
+          <div className="mb-4 hidden md:flex items-center justify-center">
+            <input
+              type="file"
+              webkitdirectory="true"
+              directory="true"
+              multiple
+              onChange={handleFolderUpload}
+              className="hidden"
+              id="folderinput-desktop"
+              ref={fileInputRef}
+            />
+            <label
+              htmlFor="folderinput-desktop"
+              className="p-2 bg-blue-600 rounded-md text-white hover:cursor-pointer"
+            >
+              Upload Folder
+            </label>
+            <span className="ml-4 text-gray-500">
+              {folderName ? folderName : "No folder selected"}
+            </span>
+          </div>
 
-        {/* Image + Controls */}
-        <div className="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0 justify-center items-start">
-          {/* Preview */}
-          {image && (
-            <div className="w-full max-w-md lg:max-w-[1450px] rounded-md overflow-hidden bg-black shadow mx-auto">
-              <RectCropper
-                imageUrl={image}
-                onCropComplete={(crop) => {
-                  setCropRect({
-                    x: crop.x,
-                    y: crop.y,
-                    w: crop.width,
-                    h: crop.height,
-                  });
-                }}
-                rotation={rotation}
-              />
+          {/* Mobile Photo Upload */}
+          <div className="mb-4 flex items-center justify-center md:hidden">
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handlePhotoUpload}
+              className="hidden"
+              id="folderinput-mobile"
+            />
+            <label
+              htmlFor="folderinput-mobile"
+              className="p-2 bg-blue-600 rounded-md text-white hover:cursor-pointer"
+            >
+              Upload Images
+            </label>
+            <span className="ml-4 text-gray-500">
+              {folderName ? folderName : "No folder selected"}
+            </span>
+          </div>
+        </div>
+      </header>
+
+      {/* Main */}
+      <main className="flex-grow container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Image Section */}
+          <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-md flex flex-col items-center">
+            <div className="flex items-center justify-between w-full mb-4">
+              <button
+                onClick={handlePrev}
+                disabled={currentIndex === 0}
+                className="p-2 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:hover:cursor-not-allowed hover:cursor-pointer"
+              >
+                <ChevronLeftIcon className="text-gray-600" />
+                <span className="text-xs text-slate-500">Prev</span>
+              </button>
+              <span className="text-lg font-semibold text-slate-500">
+                {currentIndex + 1} / {images.length}
+              </span>
+              <button
+                onClick={handleNext}
+                disabled={currentIndex >= images.length - 1}
+                className="p-2 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:hover:cursor-not-allowed hover:cursor-pointer"
+              >
+                <span className="text-xs text-slate-500">Next</span>
+                <ChevronRightIcon className="text-gray-600" />
+              </button>
             </div>
-          )}
-
-          {/* Form and Controls (Desktop) */}
-          <div className="hidden md:flex flex-col space-y-4 ml-4">
-            <div className="hidden md:flex">
-              <div className="flex flex-col justify-center items-stretch w-full m-4">
-                {image && (
-                  <Button
-                    handler={handleAutomaticCrop}
-                    color="green"
-                    text="Automatic Crop"
-                  />
-                )}
+            {/* Progress bar */}
+            {images.length > 0 && (
+              <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                <div
+                  className="bg-blue-600 h-2 rounded-full transition-all"
+                  style={{
+                    width: `${((currentIndex + 1) / images.length) * 100}%`,
+                  }}
+                ></div>
               </div>
+            )}
+            <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden border border-gray-300">
+              {image ? (
+                <RectCropper
+                  imageUrl={image}
+                  aspectWidth={aspectWidth}
+                  aspectHeight={aspectHeight}
+                  rotation={rotation}
+                  onCropComplete={(crop) => {
+                    setCropRect(crop);
+                    handleCropComplete(crop);
+                  }}
+                />
+              ) : (
+                <p className="text-gray-500">No image selected</p>
+              )}
+            </div>
+          </div>
+
+          {/* Form Section */}
+          <div className="bg-white p-6 rounded-xl shadow-md">
+            {/* Auto crop */}
+            <div className="hidden md:block mt-6 space-y-3 mb-6">
+              {image && (
+                <Button
+                  handler={handleAutomaticCrop}
+                  color="green"
+                  text="Automatic Crop"
+                />
+              )}
             </div>
 
-            <div className="bg-slate-100 p-4 rounded-md shadow-md">
+            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
               <Form
-                condition={condition}
-                setCondition={setCondition}
                 holeId={holeId}
                 setHoleId={setHoleId}
                 from={from}
                 setFrom={setFrom}
                 to={to}
                 setTo={setTo}
+                condition={condition}
+                setCondition={setCondition}
               />
             </div>
-            <div className="flex flex-col">
-              {/* Buttons */}
+
+            <div className="mt-6 space-y-3">
               <div className="hidden md:flex">
                 <div className="flex flex-col justify-center items-stretch gap-3 md:gap-5 w-full m-4">
                   {[
@@ -466,6 +455,12 @@ export default function Home() {
                       color: "blue",
                       extraClasses: "",
                     },
+                    {
+                      text: "Reset All",
+                      handler: handleResetAll,
+                      color: "red",
+                      extraClasses: "",
+                    },
                   ].map(
                     (btn, idx) =>
                       image && (
@@ -480,8 +475,10 @@ export default function Home() {
                   )}
                 </div>
               </div>
+            </div>
 
-              <div className="flex flex-row space-x-3 items-start">
+            <div className="mt-6">
+              <div className="hidden md:flex flex-row space-x-3 items-start">
                 <div className="w-full md:w-1/2 p-4 space-y-4">
                   <label className="block mb-1 text-sm font-medium">
                     Rotation: {rotation}°
@@ -503,61 +500,40 @@ export default function Home() {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Buttons */}
-        <div className="flex md:hidden">
-          <div className="flex flex-col md:flex-row justify-center items-stretch gap-3 md:gap-5 w-full m-4">
-            {[
-              {
-                text: "Automatic Crop",
-                handler: handleAutomaticCrop,
-                color: "green",
-              },
-              {
-                text: "Add image",
-                handler: handleSingleCrop,
-                color: "blue",
-              },
-              {
-                text: "Crop & Download",
-                handler: handleFinalDownload,
-                color: "blue",
-              },
-            ].map(
-              (btn, idx) =>
-                image && (
-                  <Button
-                    handler={btn.handler}
-                    color={btn.color}
-                    text={btn.text}
-                    key={idx}
-                  />
-                )
-            )}
-          </div>
-        </div>
-
-        {/* Controls for Mobile */}
-        <div className="flex flex-col md:hidden justify-center gap-6 h-auto">
-          <div className="flex flex-col w-full gap-4">
-            {/* Mobile Form */}
-            <div className="flex-[2] bg-slate-100 p-4 rounded-md shadow-md">
-              <Form
-                condition={condition}
-                setCondition={setCondition}
-                holeId={holeId}
-                setHoleId={setHoleId}
-                from={from}
-                setFrom={setFrom}
-                to={to}
-                setTo={setTo}
-              />
+            {/* Buttons */}
+            <div className="flex md:hidden">
+              <div className="flex flex-col md:flex-row justify-center items-stretch gap-3 md:gap-5 w-full m-4">
+                {[
+                  {
+                    text: "Automatic Crop",
+                    handler: handleAutomaticCrop,
+                    color: "green",
+                  },
+                  {
+                    text: "Add image",
+                    handler: handleSingleCrop,
+                    color: "blue",
+                  },
+                  {
+                    text: "Crop & Download",
+                    handler: handleFinalDownload,
+                    color: "blue",
+                  },
+                ].map(
+                  (btn, idx) =>
+                    image && (
+                      <Button
+                        handler={btn.handler}
+                        color={btn.color}
+                        text={btn.text}
+                        key={idx}
+                      />
+                    )
+                )}
+              </div>
             </div>
-
             {/* Mobile Controls */}
-            <div className="flex-1 bg-white p-4 rounded-md space-y-4">
+            <div className="flex-1 md:hidden bg-white p-4 rounded-md space-y-4">
               <div className="flex flex-col md:flex-row">
                 <Button
                   handler={() => setRotation(0)}
@@ -598,7 +574,14 @@ export default function Home() {
             </div>
           </div>
         </div>
-      </div>
-    </>
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-white mt-8">
+        <div className="container mx-auto px-4 py-4 text-center text-gray-500 text-sm">
+          © 2025 Dynamic Aspect Ratio Cropper. All rights reserved.
+        </div>
+      </footer>
+    </div>
   );
 }
