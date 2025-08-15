@@ -84,17 +84,16 @@ function AutoCropPreview({ images, onEdit }) {
             key={idx}
             className="flex-none w-24 h-24 sm:w-40 sm:h-40 bg-gray-100 border rounded cursor-pointer hover:shadow-lg transition-transform transform hover:scale-105"
             onClick={() => {
-              setSelectedImage(img.preview_url);
+              setSelectedImage(img.preview_url || img.file);
               setPreviewIndex(idx);
-              setFilename(img.filename);
+              setFilename(img.filename || img.holeId);
             }}
           >
             <img
-              src={img.preview_url}
+              src={img.preview_url || img.file}
               alt={`Preview ${idx}`}
               className="w-full h-full object-cover rounded"
             />
-            <p>{img.filename}</p>
           </div>
         ))}
       </div>

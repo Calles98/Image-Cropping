@@ -15,6 +15,7 @@ function RectCropper({ imageUrl, onCropComplete, rotation = 0 }) {
   });
   const [completedCrop, setCompletedCrop] = useState(null);
   const [naturalSize, setNaturalSize] = useState(null);
+  const [zoom, setZoom] = useState(1);
 
   const onLoad = (img) => {
     imgRef.current = img;
@@ -64,12 +65,9 @@ function RectCropper({ imageUrl, onCropComplete, rotation = 0 }) {
               width: e.target.naturalWidth,
               height: e.target.naturalHeight,
             });
-
           }}
           className="max-w-full h-auto object-contain block"
-
           style={{ transform: `rotate(${rotation}deg)` }}
-
         />
       </ReactCrop>
     </div>

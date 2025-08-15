@@ -41,6 +41,7 @@ export default function Home() {
   const [autoCropped, setAutoCropped] = useState([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState(null);
   const [editingMode, setEditingMode] = useState(false);
+  const [zoom, setZoom] = useState(1);
 
   const handleDownloadAutoCropped = async () => {
     if (autoCropped.length === 0) {
@@ -203,12 +204,12 @@ export default function Home() {
     const formData = new FormData();
     images.forEach((file) => {
       formData.append("images", file);
-      formData.append("quality", qualityValue);
+      formData.append("qualityValue", qualityValue);
       formData.append("condition", condition);
     }); // ← important
 
     try {
-      const res = await fetch("http://192.168.10.4:5000/auto-crop", {
+      const res = await fetch("http://192.168.1.98:5000/auto-crop", {
         method: "POST",
         body: formData,
       });
@@ -225,6 +226,9 @@ export default function Home() {
         return {
           preview_url: item.preview_url,
           filename: item.filename,
+          holeId: item.hole_id || `hole_${index + 1}`, // Use hole_id if available
+          from: item.from || "0.00",
+          to: item.to || "",
           index,
           originalFile: images[index], // for editing
         };
@@ -248,7 +252,7 @@ export default function Home() {
   //   const formData = new FormData();
   //   for (let i = 0; i < images.length; i++) {
   //     formData.append("images", images[i]);
-  //     formData.append("quality", qualityValue);
+  //     formData.append("…", …Value);
   //   }
 
   //   console.log([...formData]);
@@ -301,6 +305,12 @@ export default function Home() {
   };
 
   const handleSingleCrop = () => {
+    if (Number(from) > Number(to)) {
+      showConfirmation("From value can't be larger than To Value");
+      setMessageStatus("error");
+      return;
+    }
+
     const newItem = {
       file: images[currentIndex],
       holeId,
@@ -315,16 +325,29 @@ export default function Home() {
       h: cropRect.h,
       points: cornerPoints,
     };
-    setCroppedItems((prev) => [...prev, newItem]);
+
+    setCroppedItems((prev) => {
+      const exists = prev.some(
+        (item) =>
+          item.file === images[currentIndex] &&
+          item.x === cropRect.x &&
+          item.y === cropRect.y &&
+          item.w === cropRect.w &&
+          item.h === cropRect.h
+      );
+      return exists ? prev : [...prev, newItem];
+    });
 
     showConfirmation("Image added to crop list!");
-    // if (currentIndex % 2 !== 0) {
-    //   setFrom(to);
-    //   setTo("");
-    // }
+    setMessageStatus("success");
+
     setFrom(to);
     setTo("");
-    console.log("current item:", newItem);
+
+    if (process.env.NODE_ENV === "development") {
+      console.log("Current item:", newItem);
+    }
+
     if (currentIndex < images.length - 1) {
       setCurrentIndex((prev) => prev + 1);
     }
@@ -333,53 +356,60 @@ export default function Home() {
   console.log(croppedItems);
 
   const handleFinalDownload = async () => {
-    setIsLoading(true);
-    const formData = new FormData();
-
-    croppedItems.forEach((item, index) => {
-      const prefix = `file_${index}_`;
-      formData.append("images", item.file);
-      formData.append(prefix + "hole-id", item.holeId.toUpperCase());
-      formData.append(prefix + "from", item.from);
-      formData.append(prefix + "to", item.to);
-      formData.append(prefix + "quality", item.qualityValue);
-      formData.append(prefix + "condition", item.condition);
-      formData.append(prefix + "rotation", item.rotation);
-      formData.append(prefix + "x", item.x);
-      formData.append(prefix + "y", item.y);
-      formData.append(prefix + "w", item.w);
-      formData.append(prefix + "h", item.h);
-      item.points.forEach((pt, i) => {
-        formData.append(`${prefix}pt${i}_x`, pt.x);
-        formData.append(`${prefix}pt${i}_y`, pt.y);
-      });
-    });
-
-    try {
-      const response = await axios.post(
-        "http://192.168.1.78:5000/crop",
-        formData,
-        {
-          responseType: "blob",
-        }
-      );
-
-      const blob = new Blob([response.data], { type: "application/zip" });
-      const url = URL.createObjectURL(blob);
-
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "cropped_images.zip";
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      showConfirmation("Download Started!");
-    } catch (err) {
-      console.error("Download failed:", err);
-      showConfirmation("Download failed. Please try again.");
+    if (croppedItems.length < 1) {
+      showConfirmation("No valid cropped items to download!");
       setMessageStatus("error");
-    } finally {
-      setIsLoading(false);
+      return;
+    } else {
+      setIsLoading(true);
+      const formData = new FormData();
+
+      croppedItems.forEach((item, index) => {
+        const prefix = `file_${index}_`;
+        formData.append("images", item.file);
+        formData.append(prefix + "hole-id", item.holeId.toUpperCase());
+        formData.append(prefix + "from", item.from);
+        formData.append(prefix + "to", item.to);
+        formData.append(prefix + "qualityValue", item.qualityValue);
+        formData.append(prefix + "condition", item.condition);
+        formData.append(prefix + "rotation", item.rotation);
+        formData.append(prefix + "x", item.x);
+        formData.append(prefix + "y", item.y);
+        formData.append(prefix + "w", item.w);
+        formData.append(prefix + "h", item.h);
+        item.points.forEach((pt, i) => {
+          formData.append(`${prefix}pt${i}_x`, pt.x);
+          formData.append(`${prefix}pt${i}_y`, pt.y);
+        });
+      });
+
+      try {
+        const response = await axios.post(
+          "http://192.168.1.98:5000/crop",
+          formData,
+          {
+            responseType: "blob",
+          }
+        );
+
+        const blob = new Blob([response.data], { type: "application/zip" });
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "cropped_images.zip";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        showConfirmation("Download Started!");
+        setMessageStatus("success");
+      } catch (err) {
+        console.error("Download failed:", err);
+        showConfirmation("Download failed. Please try again.");
+        setMessageStatus("error");
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -424,13 +454,64 @@ export default function Home() {
     // Could show a modal with `react-easy-crop` for example
     setCurrentIndex(index);
     setEditingMode(true);
+    setHoleId(autoCropped[index].holeId || "");
+    setFrom(autoCropped[index].from || "0.00");
+    setTo(autoCropped[index].to || "");
   };
 
-  const handleFormChange = (index, updates) => {
-    setCroppedItems((prev) =>
-      prev.map((item, i) => (i === index ? { ...item, ...updates } : item))
-    );
+  {
+    /* Handle local storage */
+  }
+  const saveMetadataToLocalStorage = (index, data) => {
+    const saved = JSON.parse(localStorage.getItem("croppedItems") || "{}");
+    saved[index] = { ...saved[index], ...data };
+    localStorage.setItem("croppedItems", JSON.stringify(saved));
   };
+
+  const setHoleIdAndSave = (value) => {
+    setHoleId(value);
+    saveMetadataToLocalStorage(currentIndex, { holeId: value });
+  };
+
+  const setFromAndSave = (value) => {
+    setFrom(value);
+    saveMetadataToLocalStorage(currentIndex, { from: value });
+  };
+
+  const setToAndSave = (value) => {
+    setTo(value);
+    saveMetadataToLocalStorage(currentIndex, { to: value });
+  };
+
+  const setConditionAndSave = (value) => {
+    setCondition(value);
+    saveMetadataToLocalStorage(currentIndex, { condtion: value });
+  };
+
+  useEffect(() => {
+    const saved = JSON.parse(localStorage.getItem("croppedItems") || "{}");
+    if (saved[currentIndex]) {
+      setHoleId(saved[currentIndex].holeId || "");
+      setFrom(saved[currentIndex].from || "");
+      setTo(saved[currentIndex].to || "");
+      setCondition(saved[currentIndex].condtion || "");
+    }
+  }, [currentIndex]);
+
+  const handleMetadataChange = (index, newMeta) => {
+    setItems((prev) => {
+      const updated = prev.map((item, i) =>
+        i === index ? { ...item, ...newMeta } : item
+      );
+      // Save updated items to localStorage
+      localStorage.setItem("manualCrops", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  useEffect(() => {
+    localStorage.clear();
+  }, []);
 
   return (
     <>
@@ -597,6 +678,16 @@ export default function Home() {
                     ))}
                   </div>
                   {/* Mobile navigation using dropdown */}
+                  <div className="md:hidden m-4">
+                    <Dropdown
+                      array={Array.from(
+                        { length: images.length },
+                        (_, i) => i + 1
+                      )}
+                      currentValue={currentIndex}
+                      handleValueChange={(value) => setCurrentIndex(value)}
+                    />
+                  </div>
                 </>
               )}
 
@@ -618,6 +709,10 @@ export default function Home() {
                   <p className="text-gray-500">No image selected</p>
                 )}
               </div>
+              <AutoCropPreview 
+                images={croppedItems} 
+                onEdit={handleEdit}
+              /> 
               {/* Auto crop preview */}
               {autoCropped.length > 0 && (
                 <>
@@ -649,13 +744,14 @@ export default function Home() {
               <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
                 <Form
                   holeId={holeId}
-                  setHoleId={setHoleId}
+                  setHoleId={setHoleIdAndSave}
                   from={from}
-                  setFrom={setFrom}
+                  setFrom={setFromAndSave}
                   to={to}
-                  setTo={setTo}
+                  setTo={setToAndSave}
                   condition={condition}
-                  setCondition={setCondition}
+                  setCondition={setConditionAndSave}
+                  onChange={handleMetadataChange}
                 />
               </div>
 
@@ -755,7 +851,7 @@ export default function Home() {
                   </div>
                   <div className="">
                     <RangePicker
-                      label={`Image Quality: ${qualityValue}%`}
+                      label={`Image quality: ${qualityValue}%`}
                       min={20}
                       max={100}
                       step={10}
@@ -818,7 +914,7 @@ export default function Home() {
                       onChange: (e) => setRotation(Number(e.target.value)),
                     },
                     {
-                      label: "Image Quality: {qualityValue}%",
+                      label: "Image quality: {qualityValue}%",
                       value: qualityValue,
                       min: 20,
                       max: 100,

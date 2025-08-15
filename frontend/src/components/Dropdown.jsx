@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 
-const Dropdown = ({ currentValue, handleValueChange }) => {
+const Dropdown = ({ array, currentValue, handleValueChange }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
   //const [currrentValue, setCurrentValue] = useState(100);
@@ -54,19 +54,19 @@ const Dropdown = ({ currentValue, handleValueChange }) => {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="origin-top-right absolute left-0 mt-2 w-44 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+        <div className="z-1 origin-top absolute left-1/2 -translate-x-1/2  mt-2 w-44 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5">
           <ul
             role="menu"
             aria-orientation="vertical"
             aria-labelledby="options-menu"
           >
-            {[20, 40, 50, 60, 70, 80, 90, 100].map((item) => (
+            {array.map((item) => (
               <li
                 key={item}
                 className="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
                 role="menuitem"
                 onClick={() => handleValueChange(item)}
-              >                            
+              >
                 {item}
               </li>
             ))}
